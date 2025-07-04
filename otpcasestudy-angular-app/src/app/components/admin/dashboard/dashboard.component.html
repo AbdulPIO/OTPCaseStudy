@@ -1,0 +1,142 @@
+<app-admin-navbar [title]="'Dashboard'"></app-admin-navbar>
+
+<div class="dashboard-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <p>Welcome to the NextStep Admin Dashboard</p>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon active">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3>{{ activeExams }}</h3>
+            <p>Active Exam</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon candidates">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3>{{ totalCandidates }}</h3>
+            <p>Total Active Candidates</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Exams Table -->
+  <mat-card class="exams-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Scheduled Exams
+      </mat-card-title>
+      <div class="table-actions">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Filter Exams</mat-label>
+          <input
+            matInput
+            (keyup)="applyFilter($event)"
+            placeholder="Search by title"
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container" *ngIf="!loading; else loadingSpinner">
+        <table mat-table [dataSource]="dataSource" matSort class="exams-table">
+          <!-- Title Column -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Exam Title
+            </th>
+            <td mat-cell *matCellDef="let exam">{{ exam.title }}</td>
+          </ng-container>
+
+          <!-- Start Time Column -->
+          <ng-container matColumnDef="startTime">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Start Time
+            </th>
+            <td mat-cell *matCellDef="let exam">
+              {{ formatDateTime(exam.startTime) }}
+            </td>
+          </ng-container>
+
+          <!-- End Time Column -->
+          <ng-container matColumnDef="endTime">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>End Time</th>
+            <td mat-cell *matCellDef="let exam">
+              {{ formatDateTime(exam.endTime) }}
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let exam">
+              <mat-chip [color]="getStatusColor(exam.status)" selected>
+                {{ getStatusText(exam.status) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let exam">
+              <div class="action-buttons">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  (click)="viewResults(exam)"
+                  matTooltip="View Results"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="accent"
+                  (click)="downloadResults(exam)"
+                  matTooltip="Download Results"
+                >
+                  <mat-icon>download</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+
+        <mat-paginator
+          [pageSizeOptions]="[5, 10, 20]"
+          showFirstLastButtons
+        ></mat-paginator>
+      </div>
+
+      <ng-template #loadingSpinner>
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading exams...</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
+</div>

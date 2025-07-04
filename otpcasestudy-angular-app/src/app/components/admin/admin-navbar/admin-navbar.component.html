@@ -1,0 +1,8 @@
+<mat-toolbar class="admin-navbar">
+  <span class="navbar-title">{{ title }}</span>
+  <span class="spacer"></span>
+  <button mat-flat-button *ngIf="!isOnDashboard()" (click)="goToDashboard()">
+    <mat-icon>dashboard</mat-icon>
+    Admin Dashboard
+  </button>
+</mat-toolbar>
