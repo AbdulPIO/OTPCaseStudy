@@ -84,9 +84,18 @@ export class UploadQuestionsComponent {
         this.snackBar.open('Questions uploaded successfully!', '', { duration: 5000 });
         this.selectedFile = null;
       },
-      error: () => {
+      error: (errorResponse) => {
         this.uploading = false;
-        this.snackBar.open('Failed to upload question. Please try again', '', { duration: 5000 });
+        let errorMsg = 'Failed to upload question. Please try again';
+        if (
+          errorResponse?.error?.error?.message &&
+          typeof errorResponse?.error?.error?.message === 'string'
+        ) {
+          errorMsg = errorResponse.error?.error?.message;
+        }
+
+        this.snackBar.open(errorMsg, '', { duration: 5000 });
+        console.error('Upload Error: ', errorResponse);
       }
     });
   }

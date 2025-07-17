@@ -42,6 +42,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<Exam>();
   loading = true;
   displayedColumns: string[] = ['title', 'startTime', 'endTime', 'status', 'actions'];
+  exams: Exam[] = [];
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -63,25 +64,59 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    console.log('Paginator: ', this.paginator);
+
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
   }
 
   loadExams(): void {
     this.loading = true;
-    setTimeout(() => {
-      const exams = this.examService.getMockExams();
+    this.examService.getScheduledExams().subscribe((exams) => {
+      console.log('Parsed Exams: ', exams);
       this.dataSource.data = exams;
-      this.calculateStats(exams);
-      this.loading = false;
-    }, 1000);
+    });
+
+    // Fetch scheduled exams
+    this.examService.getScheduledExams().subscribe({
+      next: (exams) => {
+        const mappedExams = exams.map((exam: any) => ({
+          id: exam.id ?? exam.examId,
+          title: exam.title,
+          startDateTime: exam.startDateTime,
+          endDateTime: exam.endDateTime,
+          status: this.getStatusFromDates(exam.startDateTime, exam.endDateTime),
+          totalCandidates: 0
+        }));
+        this.dataSource = new MatTableDataSource(mappedExams);
+        this.calculateStats(this.dataSource.data);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.snackBar.open('Failed to load exams', '', { duration: 5000 });
+        this.loading = false;
+      }
+    });
+
+    // Fetch active exam count
+    this.examService.getActiveExamCount().subscribe({
+      next: (count) => this.activeExams = count,
+      error: (err) => console.error(err)
+    });
+
+    // Fetch total active candidates
+    this.examService.getTotalActiveCandidates().subscribe({
+      next: (count) => this.totalCandidates = count,
+      error: (err) => console.error(err)
+    })
   }
 
   calculateStats(exams: Exam[]): void {
     this.totalExams = exams.length;
     this.activeExams = exams.filter(exam => exam.status === 'ongoing').length;
     this.completedExams = exams.filter(exam => exam.status === 'ended').length;
-    this.totalCandidates = exams.reduce((sum, exam) => sum + exam.totalCandidates, 0);
+    this.totalCandidates = exams.reduce((sum, exam) => sum + (exam.totalCandidates || 0), 0);
   }
 
   applyFilter(event: Event) {
@@ -94,32 +129,58 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   getStatusColor(status: string): string {
-    switch (status) {
-      case 'upcoming': return 'primary';
-      case 'ongoing': return 'accent';
-      case 'finished': return 'warn';
-      default: return 'default';
-    }
+    const statusColorMap: { [key: string]: string } = {
+      upcoming: 'primary',
+      ongoing: 'accent',
+      finished: 'warn',
+    };
+    return statusColorMap[status] || 'default';
   }
 
   getStatusText(status: string): string {
     switch (status) {
       case 'upcoming': return 'Upcoming';
       case 'ongoing': return 'Ongoing';
-      case 'finished': return 'Expired';
+      case 'ended': return 'Expired';
       default: return status;
     }
   }
 
-  viewResults(exam: Exam): void {
-    this.snackBar.open(`Viewing results for ${exam.title}`, 'Close', { duration: 2000 });
+  getStatusFromDates(start: string, end: string): string {
+    const now = new Date().getTime();
+    const startTime = new Date(start).getTime();
+    const endTime = new Date(end).getTime();
+
+    if (now < startTime) return 'upcoming';
+    if (now >= startTime && now <= endTime) return 'ongoing';
+    return 'ended';
   }
 
+  // viewResults(exam: Exam): void {
+  //   this.snackBar.open(`Viewing results for ${exam.title}`, 'Close', { duration: 2000 });
+  // }
+
   downloadResults(exam: Exam): void {
-    this.snackBar.open(`Downloading results for ${exam.title}`, 'Close', { duration: 2000 });
+    this.examService.downloadResults(exam.id).subscribe({
+      next: (blob) => {
+        const fileName = `ResultForExam_${exam.id}.pdf`;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Download complete!', '', { duration: 5000 });
+      },
+      error: (err) => {
+        console.error(err);
+        this.snackBar.open('Failed to download results.', '', { duration: 5000 });
+      }
+    });
   }
 
   formatDateTime(date: Date): string {
     return new Date(date).toLocaleString();
   }
+
 } 

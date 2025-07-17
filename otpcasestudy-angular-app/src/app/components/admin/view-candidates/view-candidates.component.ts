@@ -14,6 +14,7 @@ import { Exam } from '../../../models/exam.model';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AdminNavbarComponent } from '../admin-navbar/admin-navbar.component';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-view-candidates',
@@ -40,7 +41,7 @@ export class ViewCandidatesComponent implements OnInit {
   filterStatus: string = 'all';
   loading = true;
 
-  displayedColumns: string[] = ['name', 'email', 'phone', 'status', 'registeredAt', 'attendedAt'];
+  displayedColumns: string[] = ['name', 'email', 'phone', 'status', 'registeredAt'];
 
   constructor(
     private candidateService: CandidateService,
@@ -54,10 +55,16 @@ export class ViewCandidatesComponent implements OnInit {
 
   loadExams(): void {
     this.loading = true;
-    setTimeout(() => {
-      this.exams = this.examService.getMockExams();
-      this.loading = false;
-    }, 500);
+    this.examService.getScheduledExams().subscribe({
+      next: (res) => {
+        this.exams = res || [];
+        this.loading = false;
+      },
+      error: () => {
+        this.snackBar.open('Failed to exams', '', { duration: 5000 })
+        this.loading = false;
+      }
+    })
   }
 
   selectExam(exam: Exam): void {
@@ -66,13 +73,24 @@ export class ViewCandidatesComponent implements OnInit {
     this.loadCandidatesForExam(exam.id);
   }
 
-  loadCandidatesForExam(examId: string): void {
+  loadCandidatesForExam(examId: number): void {
     this.loading = true;
-    setTimeout(() => {
-      const allCandidates = this.candidateService.getMockCandidates();
-      this.candidates = allCandidates.filter(c => c.examId === examId);
-      this.loading = false;
-    }, 500);
+
+    const attended$ = this.candidateService.getCandidatesByExamAndStatus(examId, 'ATTENDED');
+    const notAttended$ = this.candidateService.getCandidatesByExamAndStatus(examId, 'NOT_ATTENDED');
+
+    forkJoin([attended$, notAttended$]).subscribe({
+      next: ([attended, notAttended]) => {
+        console.log('Candidates loaded: ');
+
+        this.candidates = [...attended, ...notAttended];
+        this.loading = false;
+      },
+      error: () => {
+        this.snackBar.open('Failed to load candidates', '', { duration: 5000 });
+        this.loading = false;
+      }
+    })
   }
 
   get filteredCandidates(): Candidate[] {
@@ -80,9 +98,9 @@ export class ViewCandidatesComponent implements OnInit {
     if (this.filterStatus === 'all') {
       return this.candidates;
     } else if (this.filterStatus === 'attended') {
-      return this.candidates.filter(c => c.status === 'attended');
+      return this.candidates.filter(c => c.status?.toUpperCase() === 'ATTENDED');
     } else if (this.filterStatus === 'not_attended') {
-      return this.candidates.filter(c => c.status === 'not_attended');
+      return this.candidates.filter(c => c.status?.toUpperCase() === 'NOT_ATTENDED');
     }
     return this.candidates;
   }

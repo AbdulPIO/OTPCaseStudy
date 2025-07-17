@@ -26,7 +26,7 @@ import { AdminNavbarComponent } from '../admin-navbar/admin-navbar.component';
 })
 export class DownloadResultsComponent implements OnInit {
   exams: Exam[] = [];
-  downloadingExamId: string | null = null;
+  downloadingExamId: number | null = null;
 
   constructor(
     private examService: ExamService,
@@ -34,14 +34,26 @@ export class DownloadResultsComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.exams = this.examService.getMockExams();
+    this.loadCompletedExams();
+  }
+
+  loadCompletedExams(): void {
+    this.examService.getCompletedExams().subscribe({
+      next: (exams) => {
+        this.exams = exams;
+      },
+      error: () => {
+        this.snackBar.open('Failed to load completed exams.', '', { duration: 5000 });
+      }
+    });
   }
 
   downloadResults(exam: Exam): void {
     this.downloadingExamId = exam.id;
+    console.log("Download Exam: ", exam)
     this.examService.downloadResults(exam.id).subscribe({
       next: (blob) => {
-        this.saveFile(blob, `${exam.title}-results.xlsx`);
+        this.saveFile(blob, `${exam.title}-results.pdf`);
         this.snackBar.open('Results downloaded!', '', { duration: 5000 });
         this.downloadingExamId = null;
       },
@@ -58,6 +70,7 @@ export class DownloadResultsComponent implements OnInit {
     a.href = url;
     a.download = filename;
     a.click();
+    a.remove();
     window.URL.revokeObjectURL(url);
   }
 }

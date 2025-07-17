@@ -48,13 +48,17 @@ export class ScheduleExamComponent implements OnInit {
     { value: 30, viewValue: '30 Minutes' },
     { value: 60, viewValue: '1 Hour' },
     { value: 90, viewValue: '1 Hour 30 Minutes' },
-    { value: 120, viewValue: '2 Hours' }
+    { value: 120, viewValue: '2 Hours' },
+    { value: 150, viewValue: '2 Hours 30 Minutes' },
+    { value: 180, viewValue: '3 Hours' },
   ];
 
   timeSlots: string[] = this.generateTimeSlots();
 
-  mockSections: any[] = [];
+  categories: any[] = [];
+  categoryMarksMap: { [categoryId: number]: number[] } = {};
   availableQuestionCounts: { [index: number]: number[] } = {};
+  availableMarksMap: { [index: number]: number[] } = {};
 
   constructor(
     private fb: FormBuilder,
@@ -65,21 +69,49 @@ export class ScheduleExamComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.mockSections = this.questionService.getMockQuestionsCombination();
     this.examForm = this.createForm();
+
+    this.questionService.getAllCategories().subscribe({
+      next: (categories: any[]) => {
+        this.categories = categories.map((c) => ({
+          categoryId: c.categoryId,
+          categoryName: c.categoryName,
+          marksList: c.marksList || [],
+        }));
+
+        categories.forEach((c) => {
+          this.categoryMarksMap[c.categoryId] = c.marks;
+        });
+      },
+      error: () => {
+        this.snackBar.open('Failed to load categories', 'Close', {
+          duration: 3000,
+        });
+      },
+    });
+
     this.addSection();
   }
 
   createForm(): FormGroup {
-    return this.fb.group({
-      title: ['', Validators.required],
-      cutoff: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
-      key: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9]{10}$/)]],
-      startDate: ['', Validators.required],
-      startTime: ['', Validators.required],
-      durationInMinutes: ['', Validators.required],
-      sections: this.fb.array([], Validators.required)
-    }, { validators: this.formValidator });
+    return this.fb.group(
+      {
+        title: ['', Validators.required],
+        cutoff: [
+          '',
+          [Validators.required, Validators.min(0), Validators.max(100)],
+        ],
+        key: [
+          '',
+          [Validators.required, Validators.pattern(/^[A-Za-z0-9]{10}$/)],
+        ],
+        startDate: ['', Validators.required],
+        startTime: ['', Validators.required],
+        durationInMinutes: ['', Validators.required],
+        sections: this.fb.array([], Validators.required),
+      },
+      { validators: this.formValidator }
+    );
   }
 
   get sections(): FormArray<FormGroup> {
@@ -87,45 +119,67 @@ export class ScheduleExamComponent implements OnInit {
   }
 
   addSection(): void {
-    this.sections.push(this.fb.group({
-      sectionName: ['', Validators.required],
-      marks: ['', Validators.required],
-      questionCount: ['', Validators.required]
-    }));
+    const sectionGroup = this.fb.group({
+      sectionName: [null, Validators.required],
+      marks: [{ value: null, disabled: true }, Validators.required],
+      questionCount: [{ value: null, disabled: true }, Validators.required],
+    });
+
+    this.sections.push(sectionGroup);
   }
 
-  removeSection(index: number): void {
-    this.sections.removeAt(index);
-    delete this.availableQuestionCounts[index];
-  }
 
   onSectionChange(index: number): void {
     const section = this.sections.at(index);
+    const categoryId = section.get('sectionName')?.value;
+
     section.get('marks')?.reset();
     section.get('questionCount')?.reset();
-    this.availableQuestionCounts[index] = [];
+
+    if (categoryId) {
+      const category = this.categories.find(c => c.categoryId === categoryId);
+
+      // Extract unique marks from the question list
+      const uniqueMarks = category?.marksList || [];
+
+      this.availableMarksMap[index] = uniqueMarks || [];
+
+      section.get('marks')?.enable();
+      section.get('questionCount')?.disable();
+    } else {
+      this.availableMarksMap[index] = [];
+      section.get('marks')?.disable();
+      section.get('questionCount')?.disable();
+    }
   }
 
   onMarksChange(index: number): void {
     const section = this.sections.at(index);
-    const sectionName = section.get('sectionName')?.value;
+    const categoryId = section.get('sectionName')?.value;
     const marks = section.get('marks')?.value;
 
-    if (sectionName && marks) {
-      this.availableQuestionCounts[index] = this.getAvailableQuestions(sectionName, marks);
-    } else {
+    section.get('questionCount')?.reset();
+
+    if (!categoryId || !marks) {
       this.availableQuestionCounts[index] = [];
+      section.get('questionCount')?.disable();
+      return;
     }
 
-    section.get('questionCount')?.reset();
+    this.questionService
+      .getQuestionCountByCategory(categoryId, marks)
+      .subscribe({
+        next: (count: any) => {
+          this.availableQuestionCounts[index] = Array.from({ length: count }, (_, i) => i + 1);
+          section.get('questionCount')?.enable();
+        },
+        error: () => {
+          this.availableQuestionCounts[index] = [];
+          this.snackBar.open('Failed to load question count', 'Close', { duration: 3000 });
+        }
+      });
   }
 
-  getAvailableQuestions(sectionName: string, marks: number): number[] {
-    const mock = this.mockSections.find(
-      s => s.categoryName === sectionName && s.marks === marks
-    );
-    return mock?.availableQuestions || [];
-  }
 
   getAvailableQuestionsForIndex(index: number): number[] {
     return this.availableQuestionCounts[index] || [];
@@ -155,16 +209,22 @@ export class ScheduleExamComponent implements OnInit {
       }
     }
 
-    // check duplicate sections
     const sections = group.get('sections') as FormArray;
-    const combos = new Set<string>();
+    const comboSet = new Set<string>();
+
     for (let i = 0; i < sections.length; i++) {
       const sec = sections.at(i).value;
-      const key = `${sec.sectionName}_${sec.marks}`;
-      if (combos.has(key)) {
-        return { duplicateSection: true };
+
+      const sectionName = sec.sectionName;
+      const marks = sec.marks;
+
+      if (sectionName != null && marks != null) {
+        const key = `${sectionName}_${marks}`;
+        if (comboSet.has(key)) {
+          return { duplicateSection: true };
+        }
+        comboSet.add(key);
       }
-      combos.add(key);
     }
 
     return null;
@@ -178,39 +238,64 @@ export class ScheduleExamComponent implements OnInit {
       const startDateTime = new Date(formValue.startDate);
       const [hours, minutes] = formValue.startTime.split(':');
       startDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-      const endDateTime = new Date(startDateTime.getTime() + formValue.durationInMinutes * 60000);
+      const endDateTime = new Date(
+        startDateTime.getTime() + formValue.durationInMinutes * 60000
+      );
 
-      const examSchedule: ExamSchedule = {
-        id: '',
+      const examPayload = {
         title: formValue.title,
-        key: formValue.key,
-        cutoff: formValue.cutoff,
-        startDateTime: startDateTime,
-        endDateTime: endDateTime,
-        sections: formValue.sections.map((sec: any) => ({
-          category: sec.sectionName,
-          marks: sec.marks,
-          numberOfQuestions: sec.questionCount
-        }))
+        examKey: formValue.key,
+        startTime: startDateTime.toISOString().substring(0, 19),
+        endTime: endDateTime.toISOString().substring(0, 19),
+        timeInMinutes: formValue.durationInMinutes,
+        cutoffMarksInPercentage: formValue.cutoff,
+        totalMarks: formValue.sections.reduce(
+          (sum: number, s: any) => sum + s.marks * s.questionCount,
+          0
+        ),
+        totalQuestions: formValue.sections.reduce(
+          (sum: number, s: any) => sum + s.questionCount,
+          0
+        ),
+        questionMarks: formValue.sections[0]?.marks || 1,
+        examSectionList: formValue.sections.map((s: any) => ({
+          id: 0,
+          category: {
+            id: s.sectionName,
+            categoryName: this.getCategoryName(s.sectionName),
+          },
+          totalQuestions: s.questionCount,
+          questionMarks: s.marks,
+          questionList: [],
+        })),
       };
 
-      console.log('Scheduled Exam JSON:', JSON.stringify(examSchedule, null, 2));
-
-      setTimeout(() => {
-        this.submitting = false;
-        this.snackBar.open('Exam scheduled successfully!', 'Close', { duration: 3000 });
-        this.resetForm();
-      }, 2000);
+      this.examService.scheduleExam(examPayload).subscribe({
+        next: () => {
+          this.submitting = false;
+          console.log(examPayload)
+          this.snackBar.open('Exam scheduled successfully!', 'Close', {
+            duration: 3000,
+          });
+          this.resetForm();
+        },
+        error: () => {
+          this.submitting = false;
+          this.snackBar.open('Failed to schedule exam', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
     } else {
       this.markFormGroupTouched();
     }
   }
 
   markFormGroupTouched(): void {
-    Object.keys(this.examForm.controls).forEach(key => {
+    Object.keys(this.examForm.controls).forEach((key) => {
       const control = this.examForm.get(key);
       if (control instanceof FormArray) {
-        control.controls.forEach(c => c.markAllAsTouched());
+        control.controls.forEach((c) => c.markAllAsTouched());
       } else {
         control?.markAsTouched();
       }
@@ -225,7 +310,6 @@ export class ScheduleExamComponent implements OnInit {
     this.examForm.markAsPristine();
     this.examForm.markAsUntouched();
     this.examForm.updateValueAndValidity();
-    this.examForm.markAsUntouched();
   }
 
   getFormError(): string {
@@ -238,14 +322,34 @@ export class ScheduleExamComponent implements OnInit {
     return '';
   }
 
+  removeSection(index: number): void {
+    this.sections.removeAt(index);
+    delete this.availableQuestionCounts[index];
+    delete this.availableMarksMap[index]; // <-- changed
+  }
+
   getErrorMessage(controlName: string): string {
     const control = this.examForm.get(controlName);
-    if (control?.hasError('required')) return 'This field is required';
-    if (control?.hasError('min')) return `Minimum value is ${control.errors?.['min'].min}`;
-    if (control?.hasError('max')) return `Maximum value is ${control.errors?.['max'].max}`;
-    if (control?.hasError('minlength')) return `Minimum length is ${control.errors?.['minlength'].requiredLength}`;
-    if (control?.hasError('maxlength')) return `Maximum length is ${control.errors?.['maxlength'].requiredLength}`;
-    if (control?.hasError('pattern')) return 'Must be exactly 10 alphanumeric characters';
+    if (!control || !control.errors) return '';
+    const errorMessages: { [key: string]: string } = {
+      required: 'This field is required',
+      min: `Minimum value is ${control.errors['min']?.min}`,
+      max: `Maximum value is ${control.errors['max']?.max}`,
+      minlength: `Minimum length is ${control.errors['minlength']?.requiredLength}`,
+      maxlength: `Maximum length is ${control.errors['maxlength']?.requiredLength}`,
+      pattern: 'Must be exactly 10 alphanumeric characters',
+    };
+    for (const errorKey in errorMessages) {
+      if (control.hasError(errorKey)) {
+        return errorMessages[errorKey];
+      }
+    }
     return '';
+  }
+
+  getCategoryName(id: number): string {
+    return (
+      this.categories.find((c) => c.categoryId === id)?.categoryName || ''
+    );
   }
 }

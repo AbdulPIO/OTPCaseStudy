@@ -147,10 +147,10 @@
               (selectionChange)="onSectionChange(i)"
             >
               <mat-option
-                *ngFor="let mock of mockSections"
-                [value]="mock.categoryName"
+                *ngFor="let cat of categories"
+                [value]="cat.categoryId"
               >
-                {{ mock.categoryName }}
+                {{ cat.categoryName }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -162,7 +162,7 @@
               required
               (selectionChange)="onMarksChange(i)"
             >
-              <mat-option *ngFor="let m of [1, 2, 3]" [value]="m">{{
+              <mat-option *ngFor="let m of availableMarksMap[i]" [value]="m">{{
                 m
               }}</mat-option>
             </mat-select>
@@ -172,7 +172,7 @@
             <mat-label>Number of Questions</mat-label>
             <mat-select formControlName="questionCount" required>
               <mat-option
-                *ngFor="let count of getAvailableQuestionsForIndex(i)"
+                *ngFor="let count of availableQuestionCounts[i]"
                 [value]="count"
               >
                 {{ count }}

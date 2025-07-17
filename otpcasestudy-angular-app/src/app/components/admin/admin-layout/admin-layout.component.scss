@@ -150,7 +150,11 @@
 }
 
 @media (min-width: 768px) {
-  .admin-toolbar .toolbar-brand .toolbar-title {
-    display: inline-block;
+  .admin-toolbar {
+    .toolbar-brand {
+      .toolbar-title {
+        display: inline-block;
+      }
+    }
   }
 }

@@ -61,12 +61,6 @@ export class AdminLayoutComponent {
       icon: 'download',
       route: '/admin/download-results',
       badge: null
-    },
-    {
-      label: 'Absent Candidates',
-      icon: 'person_off',
-      route: '/admin/absent-candidates',
-      badge: null
     }
   ];
 
