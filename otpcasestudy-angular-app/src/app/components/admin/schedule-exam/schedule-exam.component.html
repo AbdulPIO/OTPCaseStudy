@@ -1,0 +1,218 @@
+<app-admin-navbar [title]="'Schedule Exam'"></app-admin-navbar>
+
+<div class="schedule-exam-container">
+  <div class="page-header">
+    <h1>Schedule New Exam</h1>
+    <p>Create and schedule a new examination for candidates</p>
+  </div>
+
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>schedule</mat-icon>
+        Exam Details
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="examForm" (ngSubmit)="onSubmit()" class="exam-form">
+        <div class="form-error" *ngIf="getFormError()">
+          <mat-icon>error</mat-icon>
+          <span>{{ getFormError() }}</span>
+        </div>
+
+        <!-- Exam Title -->
+        <mat-form-field appearance="outline" class="exam-title form-field">
+          <mat-label>Exam Title</mat-label>
+          <input
+            matInput
+            formControlName="title"
+            required
+            placeholder="Enter exam title"
+          />
+          <mat-error *ngIf="examForm.get('title')?.touched">
+            {{ getErrorMessage("title") }}
+          </mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <!-- Cutoff Marks -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Cutoff Marks (%)</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="cutoff"
+              required
+              min="0"
+              max="100"
+            />
+            <mat-error *ngIf="examForm.get('cutoff')?.touched">
+              {{ getErrorMessage("cutoff") }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Exam Key -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Exam Key</mat-label>
+            <input
+              matInput
+              formControlName="key"
+              required
+              placeholder="10-char alphanumeric"
+            />
+            <mat-error *ngIf="examForm.get('key')?.touched">
+              {{ getErrorMessage("key") }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Start Date -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Start Date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="startPicker"
+              formControlName="startDate"
+              required
+              [min]="minDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="startPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+            <mat-error *ngIf="examForm.get('startDate')?.touched">
+              {{ getErrorMessage("startDate") }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Start Time -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Start Time</mat-label>
+            <mat-select formControlName="startTime" required>
+              <mat-option *ngFor="let time of timeSlots" [value]="time">{{
+                time
+              }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="examForm.get('startTime')?.touched">
+              {{ getErrorMessage("startTime") }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Duration -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Duration</mat-label>
+            <mat-select formControlName="durationInMinutes" required>
+              <mat-option
+                *ngFor="let duration of durations"
+                [value]="duration.value"
+              >
+                {{ duration.viewValue }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="examForm.get('durationInMinutes')?.touched">
+              {{ getErrorMessage("durationInMinutes") }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <hr />
+        <h6>Exam Sections</h6>
+
+        <div class="form-row">
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="addSection()"
+          >
+            <mat-icon>add</mat-icon> Add Section
+          </button>
+        </div>
+
+        <div
+          *ngFor="let section of sections.controls; let i = index"
+          [formGroup]="section"
+          class="form-row section-row"
+        >
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Section Name</mat-label>
+            <mat-select
+              formControlName="sectionName"
+              required
+              (selectionChange)="onSectionChange(i)"
+            >
+              <mat-option
+                *ngFor="let cat of categories"
+                [value]="cat.categoryId"
+              >
+                {{ cat.categoryName }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Marks</mat-label>
+            <mat-select
+              formControlName="marks"
+              required
+              (selectionChange)="onMarksChange(i)"
+            >
+              <mat-option *ngFor="let m of availableMarksMap[i]" [value]="m">{{
+                m
+              }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Number of Questions</mat-label>
+            <mat-select formControlName="questionCount" required>
+              <mat-option
+                *ngFor="let count of availableQuestionCounts[i]"
+                [value]="count"
+              >
+                {{ count }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button
+            mat-icon-button
+            color="warn"
+            type="button"
+            (click)="removeSection(i)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+
+        <div class="form-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="submitting || examForm.invalid"
+          >
+            <mat-spinner diameter="20" *ngIf="submitting"></mat-spinner>
+            <mat-icon *ngIf="!submitting">schedule</mat-icon>
+            <span>{{ submitting ? "Scheduling..." : "Schedule Exam" }}</span>
+          </button>
+
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetForm()"
+            [disabled]="submitting"
+          >
+            <mat-icon>refresh</mat-icon>
+            <span>Reset</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

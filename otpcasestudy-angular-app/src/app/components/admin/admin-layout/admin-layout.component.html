@@ -1,0 +1,75 @@
+<mat-sidenav-container class="admin-container">
+  <!-- Sidenav -->
+  <mat-sidenav
+    #sidenav
+    [mode]="'side'"
+    [opened]="sidenavOpened"
+    class="admin-sidenav"
+  >
+    <!-- Brand/Logo -->
+    <div class="sidenav-header">
+      <div class="brand">
+        <mat-icon class="brand-icon">school</mat-icon>
+        <span class="brand-text">NextStep </span>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Navigation Menu -->
+    <mat-nav-list class="nav-list">
+      <a
+        mat-list-item
+        *ngFor="let item of menuItems"
+        [routerLink]="item.route"
+        routerLinkActive="active-link"
+        class="nav-item"
+      >
+        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+        <mat-icon
+          matListItemMeta
+          *ngIf="item.badge"
+          [matBadge]="item.badge"
+          matBadgeColor="accent"
+        >
+          notifications
+        </mat-icon>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="admin-content">
+    <!-- Toolbar -->
+    <mat-toolbar class="admin-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()" class="menu-toggle">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <!-- Toolbar Title/Logo -->
+      <div class="toolbar-brand">
+        <mat-icon class="toolbar-logo">school</mat-icon>
+        <span class="toolbar-title">NextStep </span>
+      </div>
+
+      <span class="toolbar-spacer"></span>
+
+      <!-- User Menu -->
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

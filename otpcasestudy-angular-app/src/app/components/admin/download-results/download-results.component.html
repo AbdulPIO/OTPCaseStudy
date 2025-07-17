@@ -1,0 +1,41 @@
+<app-admin-navbar [title]="'Download Results'"></app-admin-navbar>
+<div class="download-results-container">
+  <mat-card class="results-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>download</mat-icon>
+        Download Exam Results
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="exam-list">
+        <div *ngFor="let exam of exams" class="exam-item">
+          <div class="exam-info">
+            <mat-icon>assignment</mat-icon>
+            <span class="exam-title">{{ exam.title }}</span>
+            <span class="exam-date"
+              >({{ exam.startDateTime | date : "mediumDate" }})</span
+            >
+          </div>
+          <div class="exam-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="downloadResults(exam)"
+              [disabled]="downloadingExamId === exam.id"
+            >
+              <mat-icon *ngIf="downloadingExamId !== exam.id"
+                >download</mat-icon
+              >
+              <span *ngIf="downloadingExamId !== exam.id">Download</span>
+              <mat-progress-bar
+                *ngIf="downloadingExamId === exam.id"
+                mode="indeterminate"
+              ></mat-progress-bar>
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

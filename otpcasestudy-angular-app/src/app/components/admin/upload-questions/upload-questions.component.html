@@ -1,0 +1,54 @@
+<app-admin-navbar [title]="'Upload Questions'"></app-admin-navbar>
+<div class="upload-questions-container">
+  <mat-card class="upload-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>upload_file</mat-icon>
+        Upload Questions (Excel)
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="file-drop-area">
+        <ngx-file-drop (onFileDrop)="dropped($event)">
+          <ng-template ngx-file-drop-content-tmp>
+            <div class="drop-message">
+              <mat-icon>cloud_upload</mat-icon>
+              <span>Drag & drop your Excel file here, or click to select</span>
+            </div>
+          </ng-template>
+        </ngx-file-drop>
+        <div class="or-divider">OR</div>
+        <input
+          type="file"
+          accept=".xlsx,.xls"
+          (change)="fileInputChange($event)"
+        />
+      </div>
+      <div class="selected-file" *ngIf="selectedFile">
+        <mat-icon>description</mat-icon>
+        <span>{{ selectedFile.name }}</span>
+        <button
+          mat-icon-button
+          color="warn"
+          (click)="selectedFile = null"
+          aria-label="Remove file"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="actions">
+        <button
+          class="upload-button"
+          mat-raised-button
+          color="primary"
+          (click)="confirmUpload()"
+          [disabled]="!isValidExcelFile(selectedFile) || uploading"
+        >
+          <mat-spinner *ngIf="uploading" diameter="20"></mat-spinner>
+          <mat-icon *ngIf="!uploading">upload</mat-icon>
+          <span>{{ uploading ? "Uploading..." : "Upload" }}</span>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
