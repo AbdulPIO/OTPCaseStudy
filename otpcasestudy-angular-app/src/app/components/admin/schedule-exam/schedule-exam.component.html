@@ -60,7 +60,9 @@
               formControlName="key"
               required
               placeholder="10-char alphanumeric"
+              matTooltip="Exam Key is auto-generated and cannot be edited"
             />
+            <mat-hint>Auto-generated from Exam Title</mat-hint>
             <mat-error *ngIf="examForm.get('key')?.touched">
               {{ getErrorMessage("key") }}
             </mat-error>
@@ -195,6 +197,7 @@
             mat-raised-button
             color="primary"
             type="submit"
+            class="submit-btn"
             [disabled]="submitting || examForm.invalid"
           >
             <mat-spinner diameter="20" *ngIf="submitting"></mat-spinner>

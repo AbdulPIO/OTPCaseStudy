@@ -71,6 +71,15 @@ export class ScheduleExamComponent implements OnInit {
   ngOnInit(): void {
     this.examForm = this.createForm();
 
+    this.examForm.get('title')?.valueChanges.subscribe((title: string) => {
+      if (title && title.trim().length > 0) {
+        const generatedKey = this.generateExamKey(title);
+        this.examForm.get('key')?.setValue(generatedKey, { emitEvent: false });
+      } else {
+        this.examForm.get('key')?.setValue('', { emitEvent: false });
+      }
+    });
+
     this.questionService.getAllCategories().subscribe({
       next: (categories: any[]) => {
         this.categories = categories.map((c) => ({
@@ -83,8 +92,8 @@ export class ScheduleExamComponent implements OnInit {
           this.categoryMarksMap[c.categoryId] = c.marks;
         });
       },
-      error: () => {
-        this.snackBar.open('Failed to load categories', 'Close', {
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Failed to load categories', 'Close', {
           duration: 3000,
         });
       },
@@ -102,7 +111,7 @@ export class ScheduleExamComponent implements OnInit {
           [Validators.required, Validators.min(0), Validators.max(100)],
         ],
         key: [
-          '',
+          { value: '', disabled: true },
           [Validators.required, Validators.pattern(/^[A-Za-z0-9]{10}$/)],
         ],
         startDate: ['', Validators.required],
@@ -173,9 +182,9 @@ export class ScheduleExamComponent implements OnInit {
           this.availableQuestionCounts[index] = Array.from({ length: count }, (_, i) => i + 1);
           section.get('questionCount')?.enable();
         },
-        error: () => {
+        error: (err) => {
           this.availableQuestionCounts[index] = [];
-          this.snackBar.open('Failed to load question count', 'Close', { duration: 3000 });
+          this.snackBar.open(err?.error?.mesage || 'Failed to load question count', 'Close', { duration: 3000 });
         }
       });
   }
@@ -234,7 +243,7 @@ export class ScheduleExamComponent implements OnInit {
     if (this.examForm.valid) {
       this.submitting = true;
 
-      const formValue = this.examForm.value;
+      const formValue = this.examForm.getRawValue();
       const startDateTime = new Date(formValue.startDate);
       const [hours, minutes] = formValue.startTime.split(':');
       startDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10));
@@ -270,6 +279,8 @@ export class ScheduleExamComponent implements OnInit {
         })),
       };
 
+      console.log(examPayload)
+
       this.examService.scheduleExam(examPayload).subscribe({
         next: () => {
           this.submitting = false;
@@ -279,9 +290,9 @@ export class ScheduleExamComponent implements OnInit {
           });
           this.resetForm();
         },
-        error: () => {
+        error: (err) => {
           this.submitting = false;
-          this.snackBar.open('Failed to schedule exam', 'Close', {
+          this.snackBar.open(err?.error?.message || 'Failed to schedule exam', 'Close', {
             duration: 3000,
           });
         },
@@ -325,25 +336,22 @@ export class ScheduleExamComponent implements OnInit {
   removeSection(index: number): void {
     this.sections.removeAt(index);
     delete this.availableQuestionCounts[index];
-    delete this.availableMarksMap[index]; // <-- changed
+    delete this.availableMarksMap[index];
   }
 
   getErrorMessage(controlName: string): string {
     const control = this.examForm.get(controlName);
-    if (!control || !control.errors) return '';
-    const errorMessages: { [key: string]: string } = {
-      required: 'This field is required',
-      min: `Minimum value is ${control.errors['min']?.min}`,
-      max: `Maximum value is ${control.errors['max']?.max}`,
-      minlength: `Minimum length is ${control.errors['minlength']?.requiredLength}`,
-      maxlength: `Maximum length is ${control.errors['maxlength']?.requiredLength}`,
-      pattern: 'Must be exactly 10 alphanumeric characters',
-    };
-    for (const errorKey in errorMessages) {
-      if (control.hasError(errorKey)) {
-        return errorMessages[errorKey];
-      }
-    }
+    if (control?.hasError('required')) return 'This field is required';
+    if (control?.hasError('min'))
+      return `Minimum value is ${control.errors?.['min'].min}`;
+    if (control?.hasError('max'))
+      return `Maximum value is ${control.errors?.['max'].max}`;
+    if (control?.hasError('minlength'))
+      return `Minimum length is ${control.errors?.['minlength'].requiredLength}`;
+    if (control?.hasError('maxlength'))
+      return `Maximum length is ${control.errors?.['maxlength'].requiredLength}`;
+    if (control?.hasError('pattern'))
+      return 'Must be exactly 10 alphanumeric characters';
     return '';
   }
 
@@ -351,5 +359,13 @@ export class ScheduleExamComponent implements OnInit {
     return (
       this.categories.find((c) => c.categoryId === id)?.categoryName || ''
     );
+  }
+
+  // Generate a 10-character alphanumeric key based on the title and random chars
+  generateExamKey(title: string): string {
+    // Use a hash of the title and random string for uniqueness
+    const base = title.replace(/\s+/g, '').substring(0, 5).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 12).toUpperCase();
+    return (base + random).substring(0, 10);
   }
 }

@@ -1,0 +1,46 @@
+<div class="login-container">
+  <div class="branding-panel">
+    <div class="branding-content">
+      <mat-icon class="brand-logo">school</mat-icon>
+      <h1 class="brand-title">NextStep Admin Portal</h1>
+      <p class="brand-subtitle">Online Test Platform Management</p>
+    </div>
+  </div>
+  <div class="login-panel">
+    <mat-card class="login-card">
+      <mat-card-header>
+        <mat-card-title>
+          <h3>Admin Login</h3>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="login()">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" required />
+            <mat-icon matSuffix>person</mat-icon>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              required
+            />
+            <mat-icon matSuffix>lock</mat-icon>
+          </mat-form-field>
+          <button
+            mat-raised-button
+            color="primary"
+            class="login-button"
+            [disabled]="loading || loginForm.invalid"
+          >
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading">Login</span>
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

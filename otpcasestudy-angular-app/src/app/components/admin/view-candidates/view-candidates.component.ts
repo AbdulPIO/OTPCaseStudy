@@ -83,7 +83,7 @@ export class ViewCandidatesComponent implements OnInit {
       next: ([attended, notAttended]) => {
         console.log('Candidates loaded: ');
 
-        this.candidates = [...attended, ...notAttended];
+        this.candidates = [...(attended || []), ...(notAttended || [])];
         this.loading = false;
       },
       error: () => {

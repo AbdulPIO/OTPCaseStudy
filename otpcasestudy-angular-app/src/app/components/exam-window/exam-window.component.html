@@ -1,0 +1,290 @@
+<div *ngIf="beforeStart && exam" class="waiting-room-container">
+  <mat-card>
+    <div class="waiting-logo-bar">
+      <mat-icon class="waiting-logo">school</mat-icon>
+      <span class="waiting-portal-name">NextStep</span>
+    </div>
+    <div class="waiting-header">
+      <div class="waiting-candidate-name">
+        Welcome, <b>{{ exam.candidateName }}</b>
+      </div>
+      <div class="waiting-exam-name">
+        Exam: <b>{{ exam.examName }}</b>
+      </div>
+    </div>
+    <div class="waiting-timer-row">
+      <div class="waiting-timer-label">Exam starts in:</div>
+      <div class="waiting-timer">
+        <mat-icon class="timer-icon">timer</mat-icon>
+        <span class="waiting-timer-value">{{
+          countdownTimeLeft | duration
+        }}</span>
+        <button mat-raised-button color="primary" (click)="onStartExam()">
+          Start Exam
+        </button>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+    <h3 class="waiting-instructions-title">Instructions:</h3>
+    <ul class="waiting-instructions-list">
+      <li>This exam consists of multiple-choice questions.</li>
+      <li>Ensure you have a stable internet connection.</li>
+      <li>The exam will start automatically when the timer reaches zero.</li>
+      <li>Do not close or refresh this window.</li>
+      <li>All the best!</li>
+    </ul>
+  </mat-card>
+</div>
+<div *ngIf="examStarted && exam" class="exam-window-root">
+  <div class="exam-layout">
+    <div class="navigator-side">
+      <div class="navigator-box">
+        <div class="navigator-logo-row">
+          <mat-icon class="exam-logo">school</mat-icon>
+          <span class="exam-portal-name">NextStep</span>
+        </div>
+        <div class="timer-bar-navigator" [class.red]="timerBarRed">
+          <div class="timer-info">
+            <mat-icon>timer</mat-icon>
+            <span>{{ timeLeft | duration }}</span>
+          </div>
+        </div>
+        <div class="navigator-exam-name">{{ exam.examName }}</div>
+        <div class="categories-row categories-centered">
+          <div
+            *ngFor="let cat of exam.categories; let i = index"
+            class="category-item"
+            [ngClass]="{ 'active-category': i === currentCategoryIndex }"
+          >
+            <div class="category-name" [title]="cat.name">{{ cat.name }}</div>
+            <div class="category-question-count">
+              {{
+                cat.sections &&
+                cat.sections.length > 0 &&
+                cat.sections[0].questions
+                  ? cat.sections[0].questions.length
+                  : 0
+              }}
+              Questions
+            </div>
+          </div>
+        </div>
+        <app-question-navigator
+          [questions]="currentSection?.questions || []"
+          [answers]="answers"
+          [currentIndex]="currentQuestionIndex"
+          [seenQuestions]="seenQuestions"
+          (jumpTo)="goToQuestion($event)"
+        >
+        </app-question-navigator>
+        <div class="navigator-instructions">
+          Please ensure you read all questions carefully before submitting your
+          exam.
+        </div>
+        <div class="navigator-legend">
+          <div class="legend-row">
+            <span class="legend-pair"
+              ><span class="not-seen legend-box"></span
+              ><span class="legend-label">Not Seen</span></span
+            >
+            <span class="legend-pair"
+              ><span class="seen-not-answered legend-box"></span
+              ><span class="legend-label">Seen, Not Answered</span></span
+            >
+          </div>
+          <div class="legend-row">
+            <span class="legend-pair"
+              ><span class="answered legend-box"></span
+              ><span class="legend-label">Answered</span></span
+            >
+            <span class="legend-pair"
+              ><span class="review legend-box"></span
+              ><span class="legend-label">Marked for Review</span></span
+            >
+          </div>
+        </div>
+      </div>
+      <div class="submit-exam-outer-row">
+        <button
+          mat-raised-button
+          color="warn"
+          class="primary-btn submit-exam-btn"
+          (click)="openSubmitExamModal()"
+          [disabled]="submitting"
+        >
+          Submit Exam
+        </button>
+      </div>
+    </div>
+    <div class="question-area" *ngIf="currentQuestion">
+      <div class="category-header" *ngIf="currentCategory">
+        {{ currentCategory.name }}
+      </div>
+      <div class="question-header">
+        <span
+          >Question {{ currentQuestionIndex + 1 }} of {{ totalQuestions }}</span
+        >
+      </div>
+      <div class="question-scroll">
+        <div class="question-text">
+          {{ currentQuestion.text }}
+        </div>
+      </div>
+      <div class="options-scroll">
+        <div class="options-area">
+          <mat-radio-group
+            [(ngModel)]="answers[currentQuestion.id].answer"
+            (change)="saveAnswer($event.value)"
+          >
+            <mat-radio-button
+              *ngFor="let opt of currentQuestion.options"
+              [value]="opt"
+            >
+              {{ opt }}
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+      </div>
+      <div class="question-actions">
+        <button
+          mat-stroked-button
+          (click)="prevQuestion()"
+          [disabled]="currentQuestionIndex === 0"
+        >
+          Previous
+        </button>
+        <button
+          mat-stroked-button
+          (click)="nextQuestion()"
+          [disabled]="currentQuestionIndex === totalQuestions - 1"
+        >
+          Next
+        </button>
+        <button mat-stroked-button color="accent" (click)="markForReview()">
+          Mark for Review
+        </button>
+        <button mat-stroked-button color="warn" (click)="clearAnswer()">
+          Clear Answer
+        </button>
+        <button
+          *ngIf="currentCategoryIndex < exam.categories.length - 1"
+          mat-raised-button
+          class="primary-btn"
+          (click)="openCategoryModal()"
+          [disabled]="submitting"
+        >
+          Submit Category
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Category Submit Modal -->
+<div *ngIf="showCategoryModal" class="modal-overlay">
+  <div class="modal">
+    <h3>Submit Category?</h3>
+    <p>
+      Once you submit this category, you cannot return to it. Are you sure you
+      want to proceed?
+    </p>
+    <div class="modal-actions">
+      <button mat-stroked-button (click)="closeCategoryModal()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="submitCategory()">
+        Yes, Submit
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showSubmitExamModal" class="modal-overlay">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>Submit Exam?</h3>
+    <p>
+      Are you sure you want to submit the exam? You will not be able to make any
+      more changes.
+    </p>
+    <div class="modal-actions">
+      <button mat-stroked-button (click)="closeSubmitExamModal()">
+        Cancel
+      </button>
+      <button mat-raised-button color="warn" (click)="confirmSubmitExam()">
+        Yes, Submit Exam
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 15 Minute Warning Modal -->
+<div *ngIf="show15MinWarning" class="modal-overlay">
+  <div class="modal">
+    <h3>15 Minutes Left</h3>
+    <p>You have 15 minutes remaining. Please manage your time carefully.</p>
+    <div class="modal-actions">
+      <button mat-raised-button color="primary" (click)="close15MinWarning()">
+        OK
+      </button>
+    </div>
+  </div>
+</div>
+<!-- 5 Minute Warning Modal -->
+<div *ngIf="show5MinWarning" class="modal-overlay">
+  <div class="modal">
+    <h3>5 Minutes Left</h3>
+    <p>
+      You have 5 minutes remaining. Please finalize your answers and submit
+      soon.
+    </p>
+    <div class="modal-actions">
+      <button mat-raised-button color="warn" (click)="close5MinWarning()">
+        OK
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="examEnded && result" class="result-modal-overlay">
+  <div class="result-modal">
+    <mat-card>
+      <h2>Exam Result</h2>
+      <div *ngIf="result.totalMarks !== undefined">
+        Total Marks: {{ result.totalMarks }}
+      </div>
+      <div *ngIf="result.score !== undefined">Score: {{ result.score }}</div>
+      <div *ngIf="result.categoryResults">
+        <div *ngFor="let cat of result.categoryResults">
+          {{ cat.category || cat.name }}: {{ cat.marks || cat.score }}
+        </div>
+      </div>
+      <div *ngIf="result.categories">
+        <div *ngFor="let cat of result.categories">
+          {{ cat.name }}: {{ cat.score || cat.marks }}
+        </div>
+      </div>
+      <div *ngIf="result.status">
+        <strong>Status:</strong>
+        <span
+          [ngClass]="{
+            pass: result.status === 'PASS',
+            fail: result.status !== 'PASS'
+          }"
+        >
+          {{ result.status }}
+        </span>
+      </div>
+      <div *ngIf="result.pass !== undefined">
+        <strong>Status:</strong>
+        <span [ngClass]="{ pass: result.pass, fail: !result.pass }">
+          {{ result.pass ? "Pass" : "Fail" }}
+        </span>
+      </div>
+      <button
+        mat-raised-button
+        class="primary-btn finish-btn"
+        (click)="finishExam()"
+      >
+        Finish
+      </button>
+    </mat-card>
+  </div>
+</div>

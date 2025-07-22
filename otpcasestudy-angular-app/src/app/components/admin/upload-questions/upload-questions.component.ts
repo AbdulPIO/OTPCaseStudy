@@ -88,10 +88,10 @@ export class UploadQuestionsComponent {
         this.uploading = false;
         let errorMsg = 'Failed to upload question. Please try again';
         if (
-          errorResponse?.error?.error?.message &&
-          typeof errorResponse?.error?.error?.message === 'string'
+          errorResponse?.error?.message &&
+          typeof errorResponse?.error?.message === 'string'
         ) {
-          errorMsg = errorResponse.error?.error?.message;
+          errorMsg = errorResponse.error?.message;
         }
 
         this.snackBar.open(errorMsg, '', { duration: 5000 });

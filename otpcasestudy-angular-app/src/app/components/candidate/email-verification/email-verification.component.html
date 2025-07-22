@@ -1,0 +1,24 @@
+<div class="container">
+  <mat-card>
+    <div class="verify-logo-bar">
+      <mat-icon class="verify-logo">school</mat-icon>
+      <span class="verify-portal-name">NextStep</span>
+    </div>
+    <mat-card-content>
+      <div *ngIf="loading" class="center">
+        <mat-spinner></mat-spinner>
+        <p>Verifying your email...</p>
+      </div>
+      <div *ngIf="!loading && message" class="center">
+        <h2>{{ message }}</h2>
+        <button
+          mat-raised-button
+          class="verify-btn prominent-btn"
+          (click)="goToLanding()"
+        >
+          Go to Homepage
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

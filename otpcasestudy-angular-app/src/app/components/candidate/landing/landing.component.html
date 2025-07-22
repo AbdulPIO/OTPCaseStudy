@@ -1,0 +1,48 @@
+<div class="top-bar">
+  <mat-icon class="main-logo">school</mat-icon>
+  <span class="portal-name">NextStep</span>
+</div>
+<div class="hero-section">
+  <div class="hero-content">
+    <h1 class="hero-title">Welcome to Your NextStep!</h1>
+    <p class="hero-subtitle">
+      Take secure, modern online assessments and get instant results.<br />Join
+      thousands of candidates on their journey to success.
+    </p>
+    <div class="hero-actions">
+      <button
+        mat-raised-button
+        color="primary"
+        class="register-btn"
+        (click)="openRegistrationDialog()"
+      >
+        Register
+      </button>
+    </div>
+  </div>
+</div>
+<div class="features-row">
+  <div class="feature-card">
+    <mat-icon>verified_user</mat-icon>
+    <h3>Secure Exams</h3>
+    <p>Your data and answers are protected with industry-standard security.</p>
+  </div>
+  <div class="feature-card">
+    <mat-icon>timer</mat-icon>
+    <h3>Real-Time Timer</h3>
+    <p>Live countdown and auto-submit ensure a fair and smooth experience.</p>
+  </div>
+  <div class="feature-card">
+    <mat-icon>assessment</mat-icon>
+    <h3>Instant Results</h3>
+    <p>Get your results as soon as the exam ends. No waiting, no hassle.</p>
+  </div>
+  <div class="feature-card">
+    <mat-icon>support_agent</mat-icon>
+    <h3>24/7 Support</h3>
+    <p>Our team is here to help you at every step of your journey.</p>
+  </div>
+</div>
+<footer class="footer">
+  &copy; {{ currentYear }} NextStep Online Test Portal. All rights reserved.
+</footer>
