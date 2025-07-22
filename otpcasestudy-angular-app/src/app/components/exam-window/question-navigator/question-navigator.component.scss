@@ -1,0 +1,49 @@
+.navigator-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  .question-map {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    button {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      font-weight: 600;
+      position: relative;
+      &.not-seen { background: #e0e0e0; color: #333; }
+      &.seen-not-answered { background: #e53935; color: #fff; }
+      &.answered { background: #388e3c; color: #fff; }
+      &.review { background: #ffb300; color: #fff; }
+      &.current { border: 2px solid #1976d2; }
+      .status-icon {
+        font-size: 16px;
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+      }
+    }
+  }
+  .legend {
+    display: flex;
+    gap: 12px;
+    font-size: 0.9rem;
+    .not-seen, .seen-not-answered, .answered, .review {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      margin-right: 4px;
+    }
+    .not-seen { background: #e0e0e0; }
+    .seen-not-answered { background: #e53935; }
+    .answered { background: #388e3c; }
+    .review { background: #ffb300; }
+  }
+} 

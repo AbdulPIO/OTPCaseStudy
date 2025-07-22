@@ -42,8 +42,8 @@ export class DownloadResultsComponent implements OnInit {
       next: (exams) => {
         this.exams = exams;
       },
-      error: () => {
-        this.snackBar.open('Failed to load completed exams.', '', { duration: 5000 });
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Failed to load completed exams.', '', { duration: 5000 });
       }
     });
   }
@@ -57,8 +57,8 @@ export class DownloadResultsComponent implements OnInit {
         this.snackBar.open('Results downloaded!', '', { duration: 5000 });
         this.downloadingExamId = null;
       },
-      error: () => {
-        this.snackBar.open('Failed to download results.', '', { duration: 5000 });
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Failed to download results.', '', { duration: 5000 });
         this.downloadingExamId = null;
       }
     });
@@ -70,7 +70,6 @@ export class DownloadResultsComponent implements OnInit {
     a.href = url;
     a.download = filename;
     a.click();
-    a.remove();
     window.URL.revokeObjectURL(url);
   }
 }

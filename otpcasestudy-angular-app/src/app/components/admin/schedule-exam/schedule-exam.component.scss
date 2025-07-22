@@ -92,12 +92,16 @@
       height: 48px;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       font-weight: 500;
-
-      mat-spinner {
-        margin-right: 8px;
-      }
+      position: relative;
+    }
+    .submit-btn mat-spinner {
+      margin: 0 !important;
+      position: static !important;
+      display: inline-flex;
+      vertical-align: middle;
     }
 
     .reset-btn {

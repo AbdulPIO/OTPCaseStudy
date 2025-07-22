@@ -1,0 +1,112 @@
+<div class="registration-container">
+  <div class="registration-card">
+    <div class="logo-bar">
+      <mat-icon class="logo">school</mat-icon>
+      <span class="portal-name">NextStep</span>
+    </div>
+    <h2 class="page-title">Candidate Registration</h2>
+    <mat-divider></mat-divider>
+    <div class="form-container">
+      <form
+        [formGroup]="registrationForm"
+        (ngSubmit)="register()"
+        class="registration-form"
+      >
+        <mat-form-field
+          appearance="outline"
+          class="form-field"
+          floatLabel="auto"
+        >
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" required placeholder="Name" />
+          <mat-error *ngIf="registrationForm.get('name')?.hasError('required')"
+            >Name is required</mat-error
+          >
+        </mat-form-field>
+        <mat-form-field
+          appearance="outline"
+          class="form-field"
+          floatLabel="auto"
+        >
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" required placeholder="Email" />
+          <mat-error *ngIf="registrationForm.get('email')?.hasError('required')"
+            >Email is required</mat-error
+          >
+          <mat-error *ngIf="registrationForm.get('email')?.hasError('email')"
+            >Enter a valid email</mat-error
+          >
+        </mat-form-field>
+        <mat-form-field
+          appearance="outline"
+          class="form-field"
+          floatLabel="auto"
+        >
+          <mat-label>Mobile Number</mat-label>
+          <input matInput formControlName="mobileNumber" required placeholder="Mobile Number" />
+          <mat-error
+            *ngIf="registrationForm.get('mobileNumber')?.hasError('required')"
+            >Mobile number is required</mat-error
+          >
+          <mat-error
+            *ngIf="registrationForm.get('mobileNumber')?.hasError('pattern')"
+            >Enter a valid mobile number</mat-error
+          >
+        </mat-form-field>
+        <mat-form-field
+          appearance="outline"
+          class="form-field"
+          floatLabel="auto"
+        >
+          <mat-label>College Name</mat-label>
+          <input matInput formControlName="collegeName" required placeholder="College Name" />
+          <mat-error
+            *ngIf="registrationForm.get('collegeName')?.hasError('required')"
+            >College name is required</mat-error
+          >
+        </mat-form-field>
+        <mat-form-field
+          appearance="outline"
+          class="form-field"
+          floatLabel="auto"
+        >
+          <mat-label>Degree Name</mat-label>
+          <input matInput formControlName="degreeName" required placeholder="Degree Name" />
+          <mat-error
+            *ngIf="registrationForm.get('degreeName')?.hasError('required')"
+            >Degree name is required</mat-error
+          >
+        </mat-form-field>
+        <mat-form-field
+          appearance="outline"
+          class="form-field"
+          floatLabel="auto"
+        >
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city" required placeholder="City" />
+          <mat-error *ngIf="registrationForm.get('city')?.hasError('required')"
+            >City is required</mat-error
+          >
+        </mat-form-field>
+        <div class="form-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="loading || registrationForm.invalid"
+          >
+            {{ loading ? 'Registering...' : 'Register' }}
+          </button>
+          <button 
+            mat-raised-button
+            type="button"
+            class="go-home-btn"
+            (click)="goToLanding()"
+          >
+            Go to Homepage
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div> 

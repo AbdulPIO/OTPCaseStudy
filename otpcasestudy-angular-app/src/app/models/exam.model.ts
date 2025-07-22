@@ -1,25 +1,17 @@
 export interface Exam {
-    id: string;
+    id: number;
     title: string;
-    category: string;
-    startTime: Date;
-    endTime: Date;
-    totalQuestions: number;
-    totalMarks: number;
-    cutoffMarks: number;
+    startDateTime: Date;
+    endDateTime: Date;
+    status: string;
     totalCandidates: number;
-    status: 'upcoming' | 'ongoing' | 'ended';
-    createdAt: Date;
-    updatedAt: Date;
 }
 
-/**
- * Represents one section (category+marks) in the exam.
- */
+
 export interface ExamSection {
     questionCategory: QuestionCategory;
     numberOfQuestions: number;
-    marks: number; // marks per question in this section
+    marks: number;
 }
 
 export interface QuestionCategory {

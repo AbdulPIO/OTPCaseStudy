@@ -1,0 +1,14 @@
+<div class="navigator-root">
+  <div class="question-map">
+    <button
+      *ngFor="let q of questions; let i = index"
+      [ngClass]="getStatus(i) + (i === currentIndex ? ' current' : '')"
+      (click)="jumpTo.emit(i)">
+      {{ i + 1 }}
+      <ng-container [ngSwitch]="getStatus(i)">
+        <mat-icon *ngSwitchCase="'review'" fontIcon="flag" class="status-icon">flag</mat-icon>
+        <mat-icon *ngSwitchCase="'answered'" fontIcon="check_circle" class="status-icon">check_circle</mat-icon>
+      </ng-container>
+    </button>
+  </div>
+</div> 

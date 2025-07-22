@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { AuthAdminService } from '../../../services/auth-admin.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -64,14 +65,14 @@ export class AdminLayoutComponent {
     }
   ];
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private authAdminService: AuthAdminService) { }
 
   toggleSidenav() {
     this.sidenavOpened = !this.sidenavOpened;
   }
 
   logout() {
-    localStorage.removeItem('otp_admin_logged_in');
-    this.router.navigate(['/login']);
+    this.authAdminService.logout();
+    this.router.navigate(['/admin-login']);
   }
 } 

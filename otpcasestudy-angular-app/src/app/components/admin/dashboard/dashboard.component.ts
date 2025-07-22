@@ -94,7 +94,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error(err);
-        this.snackBar.open('Failed to load exams', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Failed to load exams', '', { duration: 5000 });
         this.loading = false;
       }
     });
@@ -102,13 +102,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     // Fetch active exam count
     this.examService.getActiveExamCount().subscribe({
       next: (count) => this.activeExams = count,
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err)
+        this.snackBar.open(err?.error?.message || 'Failed to load Active Exam Count', '', { duration: 5000 });
+      }
     });
 
     // Fetch total active candidates
     this.examService.getTotalActiveCandidates().subscribe({
       next: (count) => this.totalCandidates = count,
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err);
+        this.snackBar.open(err?.error?.message || 'Failed to load Active Candidates', '', { duration: 5000 });
+      }
     })
   }
 
@@ -129,12 +135,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   getStatusColor(status: string): string {
-    const statusColorMap: { [key: string]: string } = {
-      upcoming: 'primary',
-      ongoing: 'accent',
-      finished: 'warn',
-    };
-    return statusColorMap[status] || 'default';
+    switch (status) {
+      case 'upcoming': return 'primary';
+      case 'ongoing': return 'accent';
+      case 'ended': return 'warn';
+      default: return 'default';
+    }
   }
 
   getStatusText(status: string): string {
@@ -156,10 +162,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return 'ended';
   }
 
-  // viewResults(exam: Exam): void {
-  //   this.snackBar.open(`Viewing results for ${exam.title}`, 'Close', { duration: 2000 });
-  // }
-
   downloadResults(exam: Exam): void {
     this.examService.downloadResults(exam.id).subscribe({
       next: (blob) => {
@@ -174,7 +176,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error(err);
-        this.snackBar.open('Failed to download results.', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Failed to download results.', '', { duration: 5000 });
       }
     });
   }
