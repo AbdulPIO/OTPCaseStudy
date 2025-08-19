@@ -6,6 +6,18 @@ import { Observable } from 'rxjs';
 export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = localStorage.getItem('jwt_token');
+    console.log(token);
+
+    const skipURLs = [
+
+      '/admin-login',
+      '/registration',
+      '/verify-email'
+    ];
+    if (skipURLs.some(url => req.url.includes(url))) {
+      return next.handle(req);
+    }
+
     if (token) {
       const cloned = req.clone({
         setHeaders: {

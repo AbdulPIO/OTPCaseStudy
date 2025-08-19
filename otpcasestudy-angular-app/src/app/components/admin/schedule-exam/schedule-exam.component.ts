@@ -71,19 +71,21 @@ export class ScheduleExamComponent implements OnInit {
   ngOnInit(): void {
     this.examForm = this.createForm();
 
+    // Generate a random exam key when component initializes
+    const randomKey = this.generateRandomExamKey();
+    this.examForm.get('key')?.setValue(randomKey, { emitEvent: false });
+
     this.examForm.get('title')?.valueChanges.subscribe((title: string) => {
       if (title && title.trim().length > 0) {
-        const generatedKey = this.generateExamKey(title);
-        this.examForm.get('key')?.setValue(generatedKey, { emitEvent: false });
+
       } else {
-        this.examForm.get('key')?.setValue('', { emitEvent: false });
       }
     });
 
     this.questionService.getAllCategories().subscribe({
       next: (categories: any[]) => {
         this.categories = categories.map((c) => ({
-          categoryId: c.categoryId,
+          categoryId: c.id,
           categoryName: c.categoryName,
           marksList: c.marksList || [],
         }));
@@ -105,7 +107,7 @@ export class ScheduleExamComponent implements OnInit {
   createForm(): FormGroup {
     return this.fb.group(
       {
-        title: ['', Validators.required],
+        title: ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9 ]+$')]],
         cutoff: [
           '',
           [Validators.required, Validators.min(0), Validators.max(100)],
@@ -137,7 +139,6 @@ export class ScheduleExamComponent implements OnInit {
     this.sections.push(sectionGroup);
   }
 
-
   onSectionChange(index: number): void {
     const section = this.sections.at(index);
     const categoryId = section.get('sectionName')?.value;
@@ -152,6 +153,7 @@ export class ScheduleExamComponent implements OnInit {
       const uniqueMarks = category?.marksList || [];
 
       this.availableMarksMap[index] = uniqueMarks || [];
+      console.log(this.availableMarksMap);
 
       section.get('marks')?.enable();
       section.get('questionCount')?.disable();
@@ -184,11 +186,10 @@ export class ScheduleExamComponent implements OnInit {
         },
         error: (err) => {
           this.availableQuestionCounts[index] = [];
-          this.snackBar.open(err?.error?.mesage || 'Failed to load question count', 'Close', { duration: 3000 });
+          this.snackBar.open(err?.error?.message || 'Failed to load question count', 'Close', { duration: 3000 });
         }
       });
   }
-
 
   getAvailableQuestionsForIndex(index: number): number[] {
     return this.availableQuestionCounts[index] || [];
@@ -279,8 +280,6 @@ export class ScheduleExamComponent implements OnInit {
         })),
       };
 
-      console.log(examPayload)
-
       this.examService.scheduleExam(examPayload).subscribe({
         next: () => {
           this.submitting = false;
@@ -292,13 +291,13 @@ export class ScheduleExamComponent implements OnInit {
         },
         error: (err) => {
           this.submitting = false;
-          this.snackBar.open(err?.error?.message || 'Failed to schedule exam', 'Close', {
+          this.snackBar.open(err.error?.message || 'Failed to schedule exam', 'Close', {
             duration: 3000,
           });
         },
       });
     } else {
-      this.markFormGroupTouched();
+      // this.markFormGroupTouched();
     }
   }
 
@@ -318,6 +317,10 @@ export class ScheduleExamComponent implements OnInit {
     this.sections.clear();
     this.addSection();
 
+    // Generate a new random exam key after reset
+    const newRandomKey = this.generateRandomExamKey();
+    this.examForm.get('key')?.setValue(newRandomKey, { emitEvent: false });
+
     this.examForm.markAsPristine();
     this.examForm.markAsUntouched();
     this.examForm.updateValueAndValidity();
@@ -336,22 +339,25 @@ export class ScheduleExamComponent implements OnInit {
   removeSection(index: number): void {
     this.sections.removeAt(index);
     delete this.availableQuestionCounts[index];
-    delete this.availableMarksMap[index];
+    delete this.availableMarksMap[index]; // <-- changed
   }
 
   getErrorMessage(controlName: string): string {
     const control = this.examForm.get(controlName);
-    if (control?.hasError('required')) return 'This field is required';
-    if (control?.hasError('min'))
-      return `Minimum value is ${control.errors?.['min'].min}`;
-    if (control?.hasError('max'))
-      return `Maximum value is ${control.errors?.['max'].max}`;
-    if (control?.hasError('minlength'))
-      return `Minimum length is ${control.errors?.['minlength'].requiredLength}`;
-    if (control?.hasError('maxlength'))
-      return `Maximum length is ${control.errors?.['maxlength'].requiredLength}`;
-    if (control?.hasError('pattern'))
-      return 'Must be exactly 10 alphanumeric characters';
+    if (!control || !control.errors) return '';
+    const errorMessages: { [key: string]: string } = {
+      required: 'This field is required',
+      min: `Minimum value is ${control.errors['min']?.min}`,
+      max: `Maximum value is ${control.errors['max']?.max}`,
+      minlength: `Minimum length is ${control.errors['minlength']?.requiredLength}`,
+      maxlength: `Maximum length is ${control.errors['maxlength']?.requiredLength}`,
+      pattern: 'Title must contain only alphabets and numbers.',
+    };
+    for (const errorKey in errorMessages) {
+      if (control.hasError(errorKey)) {
+        return errorMessages[errorKey];
+      }
+    }
     return '';
   }
 
@@ -361,11 +367,13 @@ export class ScheduleExamComponent implements OnInit {
     );
   }
 
-  // Generate a 10-character alphanumeric key based on the title and random chars
-  generateExamKey(title: string): string {
-    // Use a hash of the title and random string for uniqueness
-    const base = title.replace(/\s+/g, '').substring(0, 5).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 12).toUpperCase();
-    return (base + random).substring(0, 10);
+  // Generate a completely random 10-character alphanumeric key
+  generateRandomExamKey(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 10; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
 }

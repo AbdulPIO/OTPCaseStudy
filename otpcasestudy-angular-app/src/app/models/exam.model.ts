@@ -31,17 +31,15 @@ export interface ExamResult {
 }
 
 export interface ExamScheduleSection {
-    category: string;
+    categoryName: string;
     marks: number;
     numberOfQuestions: number;
+    marksList: number[];
 }
 
 export interface ExamSchedule {
-    id: string;
-    title: string;
-    key: string;
-    cutoff: number;
-    startDateTime: Date;
-    endDateTime: Date;
-    sections: ExamScheduleSection[];
+    categoryId: number;
+    categoryName: string;
+    // sections: ExamScheduleSection[];
+    marksList: any[];
 }

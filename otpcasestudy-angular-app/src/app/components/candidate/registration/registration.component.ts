@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CandidateRegistrationService } from '../../../services/candidate-registration.service';
+import { ExamService } from '../../../services/exam.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -27,26 +28,54 @@ import { Router } from '@angular/router';
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.scss']
 })
-export class RegistrationComponent {
+export class RegistrationComponent implements OnInit {
+  phoneReg = /^(?:\+91\s?)?(?!9999999999)(?!9000000000)(?!0000000000)[6-9][0-9]{9}$/;
   registrationForm = this.fb.group({
-    name: ['', Validators.required],
+    name: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+(?: [a-zA-Z]+)*$')]],
     email: ['', [Validators.required, Validators.email]],
-    mobileNumber: ['', [Validators.required, Validators.pattern('^[0-9]{10,15}$')]],
-    collegeName: ['', Validators.required],
-    degreeName: ['', Validators.required],
-    city: ['', Validators.required]
+    mobileNumber: ['', [Validators.required, Validators.pattern(this.phoneReg)]],
+    collegeName: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+(?: [a-zA-Z]+)*$')]],
+    degreeName: ['', [Validators.required, Validators.pattern('^[a-zA-Z.]+(?: [a-zA-Z.]+)*$')]],
+    city: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+(?: [a-zA-Z]+)*$')]]
   });
   loading = false;
+  registrationEnabled = true;
+  checkingStatus = true;
 
   constructor(
     private fb: FormBuilder,
     private candidateRegService: CandidateRegistrationService,
+    private examService: ExamService,
     private snackBar: MatSnackBar,
     private router: Router
   ) { }
 
+  ngOnInit(): void {
+    this.checkRegistrationStatus();
+
+  }
+
+  checkRegistrationStatus(): void {
+    this.checkingStatus = true;
+    this.examService.getRegistrationStatus().subscribe({
+      next: (status) => {
+        this.registrationEnabled = status;
+        this.checkingStatus = false;
+        if (!status) {
+          this.registrationForm.disable();
+        }
+      },
+      error: (err) => {
+        console.error('Failed to check registration status:', err);
+        this.checkingStatus = false;
+        // Default to enabled if we can't check status
+        this.registrationEnabled = true;
+      }
+    });
+  }
+
   register() {
-    if (this.registrationForm.invalid) return;
+    if (this.registrationForm.invalid || !this.registrationEnabled) return;
     this.loading = true;
     this.candidateRegService.register(this.registrationForm.value).subscribe({
       next: () => {
@@ -61,7 +90,7 @@ export class RegistrationComponent {
         const errorMessage = err?.error?.message || 'Registration failed.';
         console.log(errorMessage);
 
-        if (errorMessage.includes('already exists')) {
+        if (errorMessage.includes('Already Registered')) {
           const snackBarRef = this.snackBar.open('This email is already registered but not verified.', 'Resend Verification', {
             duration: 10000
           });
@@ -69,7 +98,7 @@ export class RegistrationComponent {
             this.resendVerification();
           });
         } else {
-          this.snackBar.open(errorMessage, '', { duration: 5000 });
+          this.snackBar.open(errorMessage, '', { duration: 10000 });
         }
       }
     });

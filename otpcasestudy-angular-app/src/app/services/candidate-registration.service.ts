@@ -12,7 +12,9 @@ export class CandidateRegistrationService {
   register(candidate: any) {
     return this.http.post<any>(`${environment.apiBaseUrl}/candidate`, candidate).pipe(
       tap((res) => {
-        const token = res?.data?.jwtToken || res?.data || res?.jwtToken || res;
+        const token = res?.data?.jwtToken;
+        console.log(token);
+
         if (token) {
           localStorage.setItem('jwt_token', token);
         }

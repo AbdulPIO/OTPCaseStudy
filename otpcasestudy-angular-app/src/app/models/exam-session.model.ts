@@ -6,27 +6,25 @@ export interface ExamSession {
 
 export interface ExamDetails {
   examId: number;
-  candidateName: string;
-  examName: string;
-  categories: ExamCategory[];
   startTime: string;
   endTime: string;
+  questionCategoryList: ExamCategory[];
 }
 
 export interface ExamCategory {
-  name: string;
-  sections: ExamSection[];
-  locked: boolean;
-}
-
-export interface ExamSection {
-  name: string;
-  questions: ExamQuestion[];
+  id: number;
+  categoryName: string;
+  questionList: ExamQuestion[];
 }
 
 export interface ExamQuestion {
-  id: string;
-  text: string;
-  options: string[];
-  answer?: string;
+  id: number;
+  questionText: string;
+  questionOptionList: ExamOption[];
+  marks: number;
+}
+
+export interface ExamOption {
+  id: number;
+  optionText: string;
 } 

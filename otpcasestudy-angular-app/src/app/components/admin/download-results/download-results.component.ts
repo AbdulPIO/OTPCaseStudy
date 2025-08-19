@@ -43,7 +43,7 @@ export class DownloadResultsComponent implements OnInit {
         this.exams = exams;
       },
       error: (err) => {
-        this.snackBar.open(err?.error?.message || 'Failed to load completed exams.', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Failed to load completed exams.', 'ERROR', { duration: 5000 });
       }
     });
   }
@@ -54,11 +54,11 @@ export class DownloadResultsComponent implements OnInit {
     this.examService.downloadResults(exam.id).subscribe({
       next: (blob) => {
         this.saveFile(blob, `${exam.title}-results.pdf`);
-        this.snackBar.open('Results downloaded!', '', { duration: 5000 });
+        this.snackBar.open('Results downloaded!', 'INFO', { duration: 5000 });
         this.downloadingExamId = null;
       },
       error: (err) => {
-        this.snackBar.open(err?.error?.message || 'Failed to download results.', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Failed to download results.', 'ERROR', { duration: 5000 });
         this.downloadingExamId = null;
       }
     });
@@ -71,5 +71,6 @@ export class DownloadResultsComponent implements OnInit {
     a.download = filename;
     a.click();
     window.URL.revokeObjectURL(url);
+    a.remove();
   }
 }

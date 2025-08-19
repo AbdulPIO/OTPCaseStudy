@@ -14,6 +14,7 @@ import { RegistrationComponent } from './components/candidate/registration/regis
 import { ExamWindowComponent } from './components/exam-window/exam-window.component';
 import { ExamExitGuard } from './guards/exam-exit.guard';
 import { CandidateLoginComponent } from './components/candidate/candidate-login/candidate-login.component';
+import { StayOnPageGuard } from './guards/stay-on-page.guard';
 
 export const routes: Routes = [
     {
@@ -35,10 +36,14 @@ export const routes: Routes = [
         loadComponent: () => import('./components/admin/login/login.component').then(m => m.LoginComponent)
     },
     { path: 'landing', component: LandingComponent },
-    { path: 'admin-login', component: AdminLoginComponent }, 
+    { path: 'admin-login', component: AdminLoginComponent },
     { path: 'verify-email', component: EmailVerificationComponent },
     { path: 'registration', component: RegistrationComponent },
     { path: 'exam', component: ExamWindowComponent, canDeactivate: [ExamExitGuard] },
+    {
+        path: 'exam-result',
+        loadComponent: () => import('./components/exam-window/result-window/result-window.component').then(m => m.ResultWindowComponent),
+    },
     { path: 'candidate-login', component: CandidateLoginComponent },
     { path: '', pathMatch: 'full', redirectTo: 'admin/dashboard' },
     { path: '**', redirectTo: 'landing' }

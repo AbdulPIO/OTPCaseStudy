@@ -18,7 +18,7 @@
   border: 2px solid transparent;
 }
 .exam-card.selected {
-  border-color: #667eea;
+  border-color: #3b1877;
   box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
 }
 .exam-meta {
@@ -50,7 +50,7 @@
       font-weight: 600;
       color: #333;
       mat-icon {
-        color: #2196f3;
+        color: #3b1877;
       }
     }
   }

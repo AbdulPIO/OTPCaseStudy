@@ -5,34 +5,42 @@
       <span class="waiting-portal-name">NextStep</span>
     </div>
     <div class="waiting-header">
-      <div class="waiting-candidate-name">
-        Welcome, <b>{{ exam.candidateName }}</b>
-      </div>
-      <div class="waiting-exam-name">
-        Exam: <b>{{ exam.examName }}</b>
-      </div>
+      <div class="waiting-candidate-name">Welcome to the Exam</div>
     </div>
     <div class="waiting-timer-row">
-      <div class="waiting-timer-label">Exam starts in:</div>
+      <div class="waiting-timer-label">
+        <span *ngIf="!startExamEnabled">Exam starts in:</span>
+        <span *ngIf="startExamEnabled">Ready to start:</span>
+      </div>
       <div class="waiting-timer">
-        <mat-icon class="timer-icon">timer</mat-icon>
-        <span class="waiting-timer-value">{{
-          countdownTimeLeft | duration
-        }}</span>
-        <button mat-raised-button color="primary" (click)="onStartExam()">
+        <!-- Show countdown timer when exam hasn't started yet -->
+        <div *ngIf="!startExamEnabled" class="countdown-display">
+          <mat-icon class="countdown-icon">schedule</mat-icon>
+          <span class="countdown-time">{{ formatCountdownTime() }}</span>
+        </div>
+
+        <!-- Show start button when countdown is complete -->
+        <button
+          *ngIf="startExamEnabled"
+          mat-raised-button
+          color="primary"
+          (click)="onStartExam()"
+          class="start-exam-button"
+        >
+          <mat-icon>play_arrow</mat-icon>
           Start Exam
         </button>
       </div>
     </div>
     <mat-divider></mat-divider>
     <h3 class="waiting-instructions-title">Instructions:</h3>
-    <ul class="waiting-instructions-list">
+    <ol class="waiting-instructions-list">
       <li>This exam consists of multiple-choice questions.</li>
       <li>Ensure you have a stable internet connection.</li>
       <li>The exam will start automatically when the timer reaches zero.</li>
       <li>Do not close or refresh this window.</li>
       <li>All the best!</li>
-    </ul>
+    </ol>
   </mat-card>
 </div>
 <div *ngIf="examStarted && exam" class="exam-window-root">
@@ -43,34 +51,32 @@
           <mat-icon class="exam-logo">school</mat-icon>
           <span class="exam-portal-name">NextStep</span>
         </div>
-        <div class="timer-bar-navigator" [class.red]="timerBarRed">
+        <div class="timer-bar-navigator">
           <div class="timer-info">
             <mat-icon>timer</mat-icon>
             <span>{{ timeLeft | duration }}</span>
           </div>
         </div>
-        <div class="navigator-exam-name">{{ exam.examName }}</div>
+        <div class="navigator-exam-name">Exam Window</div>
         <div class="categories-row categories-centered">
           <div
-            *ngFor="let cat of exam.categories; let i = index"
+            *ngFor="let cat of exam.questionCategoryList; let i = index"
             class="category-item"
             [ngClass]="{ 'active-category': i === currentCategoryIndex }"
           >
-            <div class="category-name" [title]="cat.name">{{ cat.name }}</div>
+            <div class="category-name" [title]="cat.categoryName">
+              {{ cat.categoryName }}
+            </div>
             <div class="category-question-count">
-              {{
-                cat.sections &&
-                cat.sections.length > 0 &&
-                cat.sections[0].questions
-                  ? cat.sections[0].questions.length
-                  : 0
-              }}
-              Questions
+              {{ cat.questionList.length }} Questions
             </div>
           </div>
         </div>
+        <div class="navigator-question-numbering">
+          Question {{ currentQuestionIndex + 1 }} of {{ totalQuestions }}
+        </div>
         <app-question-navigator
-          [questions]="currentSection?.questions || []"
+          [questions]="currentCategory?.questionList || []"
           [answers]="answers"
           [currentIndex]="currentQuestionIndex"
           [seenQuestions]="seenQuestions"
@@ -89,7 +95,7 @@
             >
             <span class="legend-pair"
               ><span class="seen-not-answered legend-box"></span
-              ><span class="legend-label">Seen, Not Answered</span></span
+              ><span class="legend-label">Yet To Be Answerd</span></span
             >
           </div>
           <div class="legend-row">
@@ -118,7 +124,7 @@
     </div>
     <div class="question-area" *ngIf="currentQuestion">
       <div class="category-header" *ngIf="currentCategory">
-        {{ currentCategory.name }}
+        {{ currentCategory.categoryName }}
       </div>
       <div class="question-header">
         <span
@@ -127,20 +133,17 @@
       </div>
       <div class="question-scroll">
         <div class="question-text">
-          {{ currentQuestion.text }}
+          {{ currentQuestion.questionText }}
         </div>
       </div>
       <div class="options-scroll">
         <div class="options-area">
-          <mat-radio-group
-            [(ngModel)]="answers[currentQuestion.id].answer"
-            (change)="saveAnswer($event.value)"
-          >
+          <mat-radio-group [(ngModel)]="a" (change)="saveAnswer($event.value)">
             <mat-radio-button
-              *ngFor="let opt of currentQuestion.options"
-              [value]="opt"
+              *ngFor="let opt of currentQuestion.questionOptionList"
+              [value]="opt.id"
             >
-              {{ opt }}
+              {{ opt.optionText }}
             </mat-radio-button>
           </mat-radio-group>
         </div>
@@ -167,7 +170,9 @@
           Clear Answer
         </button>
         <button
-          *ngIf="currentCategoryIndex < exam.categories.length - 1"
+          *ngIf="
+            currentCategoryIndex < (exam?.questionCategoryList?.length ?? 0) - 1
+          "
           mat-raised-button
           class="primary-btn"
           (click)="openCategoryModal()"
@@ -240,51 +245,5 @@
         OK
       </button>
     </div>
-  </div>
-</div>
-
-<div *ngIf="examEnded && result" class="result-modal-overlay">
-  <div class="result-modal">
-    <mat-card>
-      <h2>Exam Result</h2>
-      <div *ngIf="result.totalMarks !== undefined">
-        Total Marks: {{ result.totalMarks }}
-      </div>
-      <div *ngIf="result.score !== undefined">Score: {{ result.score }}</div>
-      <div *ngIf="result.categoryResults">
-        <div *ngFor="let cat of result.categoryResults">
-          {{ cat.category || cat.name }}: {{ cat.marks || cat.score }}
-        </div>
-      </div>
-      <div *ngIf="result.categories">
-        <div *ngFor="let cat of result.categories">
-          {{ cat.name }}: {{ cat.score || cat.marks }}
-        </div>
-      </div>
-      <div *ngIf="result.status">
-        <strong>Status:</strong>
-        <span
-          [ngClass]="{
-            pass: result.status === 'PASS',
-            fail: result.status !== 'PASS'
-          }"
-        >
-          {{ result.status }}
-        </span>
-      </div>
-      <div *ngIf="result.pass !== undefined">
-        <strong>Status:</strong>
-        <span [ngClass]="{ pass: result.pass, fail: !result.pass }">
-          {{ result.pass ? "Pass" : "Fail" }}
-        </span>
-      </div>
-      <button
-        mat-raised-button
-        class="primary-btn finish-btn"
-        (click)="finishExam()"
-      >
-        Finish
-      </button>
-    </mat-card>
   </div>
 </div>

@@ -1,0 +1,128 @@
+<div class="result-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-card class="loading-card">
+      <div class="loading-content">
+        <mat-icon class="loading-icon">hourglass_empty</mat-icon>
+        <h3>Loading Results...</h3>
+        <p>Please wait while we process your exam results.</p>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Exam Result Display -->
+  <div *ngIf="!loading && result" class="center">
+    <mat-card>
+      <div class="result-header">
+        <h2>Exam Result</h2>
+        <div class="result-subtitle">
+          {{ result.candidateName }}Here is your exam result
+        </div>
+      </div>
+
+      <mat-card-content class="result-content">
+        <div class="result-info-row">
+          <div class="result-item">
+            <mat-icon class="result-icon">grade</mat-icon>
+            <div class="result-details">
+              <span class="result-label">Marks Obtained</span>
+              <span class="result-value">{{ result.marksObtained }}</span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <mat-icon class="result-icon">assignment</mat-icon>
+            <div class="result-details">
+              <span class="result-label">Total Marks</span>
+              <span class="result-value">{{ result.totalMarks }}</span>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <mat-icon class="result-icon">percent</mat-icon>
+            <div class="result-details">
+              <span class="result-label">Percentage</span>
+              <span class="result-value">{{ getPercentage() }}</span>
+            </div>
+          </div>
+
+          <div
+            class="result-item"
+            [ngClass]="
+              isQualified() ? 'status-qualified' : 'status-not-qualified'
+            "
+          >
+            <mat-icon class="result-icon">
+              {{ isQualified() ? "check_circle" : "cancel" }}
+            </mat-icon>
+            <div class="result-details">
+              <span class="result-label">Status</span>
+              <span class="result-value">
+                {{ getStatusText() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category-wise Marks Breakdown -->
+        <div
+          class="category-breakdown"
+          *ngIf="
+            result.categoryMarksList && result.categoryMarksList.length > 0
+          "
+        >
+          <h3 class="section-title">
+            <mat-icon>category</mat-icon>
+            Category-wise Performance
+          </h3>
+          <div class="category-list-container">
+            <div class="category-list">
+              <div
+                class="category-item"
+                *ngFor="let category of result.categoryMarksList"
+              >
+                <div class="category-header">
+                  <span class="category-name">{{ category.categoryName }}</span>
+                  <span class="category-marks">{{
+                    category.obtainedMarks
+                  }}</span>
+                </div>
+                <div class="progress-container">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      [style.width.%]="getCategoryProgressWidth(category)"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <div class="result-actions">
+        <button mat-raised-button class="prominent-btn" (click)="finishExam()">
+          End Session
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- No Result Found -->
+  <div *ngIf="!loading && !result" class="no-result-container">
+    <mat-card class="no-result-card">
+      <div class="no-result-content">
+        <mat-icon class="no-result-icon">error_outline</mat-icon>
+        <h3>No Results Found</h3>
+        <p>
+          We couldn't find your exam results. You will be redirected to the home
+          page.
+        </p>
+        <button mat-raised-button color="primary" (click)="finishExam()">
+          End Session
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>
