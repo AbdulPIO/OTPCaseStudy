@@ -43,7 +43,7 @@ export class UploadQuestionsComponent {
         } else {
           this.snackBar.open(
             'Invalid file type. Please drop an Excel (.xls or .xlsx) file.',
-            '', { duration: 5000 }
+            'ERROR', { duration: 5000 }
           );
           this.selectedFile = file;
         }
@@ -60,7 +60,7 @@ export class UploadQuestionsComponent {
       } else {
         this.snackBar.open(
           'Invalid file type. Please drop an Excel (.xls or .xlsx) file.',
-          '', { duration: 5000 }
+          'ERROR', { duration: 5000 }
         );
         input.value = '';
         this.selectedFile = null;
@@ -81,12 +81,12 @@ export class UploadQuestionsComponent {
     this.questionService.uploadQuestions(this.selectedFile).subscribe({
       next: () => {
         this.uploading = false;
-        this.snackBar.open('Questions uploaded successfully!', '', { duration: 5000 });
+        this.snackBar.open('Questions uploaded successfully!', 'INFO', { duration: 5000 });
         this.selectedFile = null;
       },
       error: (errorResponse) => {
         this.uploading = false;
-        let errorMsg = 'Failed to upload question. Please try again';
+        let errorMsg = errorResponse?.error?.message || 'Failed to upload question. Please try again';
         if (
           errorResponse?.error?.message &&
           typeof errorResponse?.error?.message === 'string'

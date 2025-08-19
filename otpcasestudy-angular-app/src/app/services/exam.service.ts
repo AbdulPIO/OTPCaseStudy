@@ -74,4 +74,19 @@ export class ExamService {
         return this.http.post(`${this.apiUrl}/admin/exam`, examSchedule)
     }
 
+    // Get registration status
+    getRegistrationStatus(): Observable<boolean> {
+        return this.http.get<any>(`${this.apiUrl}/admin/exam/registration-status`)
+            .pipe(map(res => {
+                const status = res.data;
+                return status === "ON" || status === true;
+            }));
+    }
+
+    // Toggle registration status
+    toggleRegistration(): Observable<string> {
+        return this.http.put<any>(`${this.apiUrl}/admin/exam/toggle-registration`, {})
+            .pipe(map(res => res.message));
+    }
+
 } 

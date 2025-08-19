@@ -51,7 +51,7 @@ export class AdminLoginComponent {
         this.loading = false;
       },
       error: (err) => {
-        this.snackBar.open(err?.error?.message || 'Login failed. Check credentials.', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Login failed. Check credentials.', 'ERROR', { duration: 5000 });
         this.loading = false;
       }
     });

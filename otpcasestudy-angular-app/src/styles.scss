@@ -95,6 +95,18 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
+.mat-slide-toggle.mat-slide-toggle-bar {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.mat-slide-toggle.mat-slide-toggle-thumb {
+  background-color: white !important;
+}
+
+.mat-slide-toggle.mat-slide-toggle-checked .mat-slide-toggle-bar {
+  background-color: #4caf50 !important;
+}
+
 @media (max-width: 768px) {
   .mat-mdc-card {
     margin: 8px !important;

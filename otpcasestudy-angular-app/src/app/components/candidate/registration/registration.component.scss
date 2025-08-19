@@ -1,16 +1,23 @@
+html {
+  scrollbar-width: none;
+}
+
+body {
+  overflow: hidden;
+}
+
 .registration-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #3b1877;
-  padding: 20px;
 }
 
 .registration-card {
   width: 100%;
-  max-width: 500px;
-  padding: 40px 32px;
+  max-width: 800px;
+  padding: 20px 32px;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(25, 118, 210, 0.12);
   background: #fff;
@@ -62,7 +69,19 @@
   gap: 20px;
 }
 
+.form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
 .form-field {
+  flex: 1;
   width: 100%;
 }
 
@@ -102,8 +121,9 @@
 }
 
 .form-actions button.go-home-btn {
-  background: #7c4dff !important;
-  color: #fff !important;
+  background: #fff !important;
+  color: #3b1877 !important;
+  box-shadow: none;
 }
 .form-actions button.go-home-btn:hover,
 .form-actions button.go-home-btn:focus {
@@ -156,5 +176,45 @@
 
   .registration-form {
     gap: 16px;
+  }
+}
+
+.status-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 8px;
+  font-weight: 500;
+
+  &.checking {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+
+    mat-icon {
+      color: #1976d2;
+      animation: spin 2s linear infinite;
+    }
+  }
+
+  &.disabled {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border: 1px solid #ffcdd2;
+
+    mat-icon {
+      color: #d32f2f;
+    }
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }

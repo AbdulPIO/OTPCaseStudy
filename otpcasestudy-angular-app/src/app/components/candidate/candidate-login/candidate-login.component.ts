@@ -50,7 +50,14 @@ export class CandidateLoginComponent {
         this.loading = false;
         // Save response data to sessionStorage for exam window
         if (res && res.data) {
+          console.log(res.data);
+
           sessionStorage.setItem('exam_session_data', JSON.stringify(res.data));
+          if (res.data.jwtToken) {
+            localStorage.setItem('jwt_token', res.data.jwtToken)
+            console.log(res.data.jwtToken);
+
+          }
         }
         this.router.navigate(['/exam']);
       },

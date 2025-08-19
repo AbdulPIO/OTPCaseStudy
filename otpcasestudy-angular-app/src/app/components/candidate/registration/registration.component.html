@@ -6,107 +6,228 @@
     </div>
     <h2 class="page-title">Candidate Registration</h2>
     <mat-divider></mat-divider>
+
+    <!-- Registration Status Messages -->
+    <div *ngIf="checkingStatus" class="status-message checking">
+      <mat-icon>hourglass_empty</mat-icon>
+      <span>Checking registration status...</span>
+    </div>
+
+    <div
+      *ngIf="!checkingStatus && !registrationEnabled"
+      class="status-message disabled"
+    >
+      <mat-icon>block</mat-icon>
+      <span
+        >Registration is currently disabled. Please contact the administrator
+        for more information.</span
+      >
+    </div>
+
     <div class="form-container">
       <form
         [formGroup]="registrationForm"
         (ngSubmit)="register()"
         class="registration-form"
       >
-        <mat-form-field
-          appearance="outline"
-          class="form-field"
-          floatLabel="auto"
-        >
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" required placeholder="Name" />
-          <mat-error *ngIf="registrationForm.get('name')?.hasError('required')"
-            >Name is required</mat-error
+        <!-- Row 1: Name and Email -->
+        <div class="form-row">
+          <mat-form-field
+            appearance="outline"
+            class="form-field"
+            floatLabel="auto"
           >
-        </mat-form-field>
-        <mat-form-field
-          appearance="outline"
-          class="form-field"
-          floatLabel="auto"
-        >
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" required placeholder="Email" />
-          <mat-error *ngIf="registrationForm.get('email')?.hasError('required')"
-            >Email is required</mat-error
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              required
+              placeholder="Name"
+              minlength="3"
+              maxlength="30"
+            />
+            <mat-error
+              *ngIf="registrationForm.get('name')?.hasError('required')"
+              >Name is required</mat-error
+            >
+            <mat-error *ngIf="registrationForm.get('name')?.hasError('pattern')"
+              >Invalid name, only alphabets are allowed!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('name')?.hasError('minlength')"
+              >Name should have minimum 3 characters!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('name')?.hasError('maxlength')"
+              >Name can have maximum 30 characters!</mat-error
+            >
+          </mat-form-field>
+          <mat-form-field
+            appearance="outline"
+            class="form-field"
+            floatLabel="auto"
           >
-          <mat-error *ngIf="registrationForm.get('email')?.hasError('email')"
-            >Enter a valid email</mat-error
+            <mat-label>Email</mat-label>
+            <input
+              matInput
+              formControlName="email"
+              required
+              placeholder="Email"
+            />
+            <mat-error
+              *ngIf="registrationForm.get('email')?.hasError('required')"
+              >Email is required</mat-error
+            >
+            <mat-error *ngIf="registrationForm.get('email')?.hasError('email')"
+              >Enter a valid email</mat-error
+            >
+          </mat-form-field>
+        </div>
+
+        <!-- Row 2: Mobile Number and College Name -->
+        <div class="form-row">
+          <mat-form-field
+            appearance="outline"
+            class="form-field"
+            floatLabel="auto"
           >
-        </mat-form-field>
-        <mat-form-field
-          appearance="outline"
-          class="form-field"
-          floatLabel="auto"
-        >
-          <mat-label>Mobile Number</mat-label>
-          <input matInput formControlName="mobileNumber" required placeholder="Mobile Number" />
-          <mat-error
-            *ngIf="registrationForm.get('mobileNumber')?.hasError('required')"
-            >Mobile number is required</mat-error
+            <mat-label>Mobile Number</mat-label>
+            <input
+              matInput
+              formControlName="mobileNumber"
+              required
+              placeholder="Mobile Number"
+            />
+            <mat-error
+              *ngIf="registrationForm.get('mobileNumber')?.hasError('required')"
+              >Mobile number is required</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('mobileNumber')?.hasError('pattern')"
+              >Enter a valid mobile number</mat-error
+            >
+          </mat-form-field>
+          <mat-form-field
+            appearance="outline"
+            class="form-field"
+            floatLabel="auto"
           >
-          <mat-error
-            *ngIf="registrationForm.get('mobileNumber')?.hasError('pattern')"
-            >Enter a valid mobile number</mat-error
+            <mat-label>College Name</mat-label>
+            <input
+              matInput
+              formControlName="collegeName"
+              required
+              placeholder="College Name"
+              minlength="2"
+              maxlength="40"
+            />
+            <mat-error
+              *ngIf="registrationForm.get('collegeName')?.hasError('required')"
+              >College name is required</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('collegeName')?.hasError('pattern')"
+              >Enter a valid College Name!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('collegeName')?.hasError('minlength')"
+              >College Name should have minimum 2 characters!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('collegeName')?.hasError('maxlength')"
+              >College Name can have maximum 40 characters!</mat-error
+            >
+          </mat-form-field>
+        </div>
+
+        <!-- Row 3: Degree Name and City -->
+        <div class="form-row">
+          <mat-form-field
+            appearance="outline"
+            class="form-field"
+            floatLabel="auto"
           >
-        </mat-form-field>
-        <mat-form-field
-          appearance="outline"
-          class="form-field"
-          floatLabel="auto"
-        >
-          <mat-label>College Name</mat-label>
-          <input matInput formControlName="collegeName" required placeholder="College Name" />
-          <mat-error
-            *ngIf="registrationForm.get('collegeName')?.hasError('required')"
-            >College name is required</mat-error
+            <mat-label>Degree Name</mat-label>
+            <input
+              matInput
+              formControlName="degreeName"
+              required
+              placeholder="Degree Name"
+              minlength="3"
+              maxlength="40"
+            />
+            <mat-error
+              *ngIf="registrationForm.get('degreeName')?.hasError('required')"
+              >Degree name is required</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('degreeName')?.hasError('pattern')"
+              >Enter a valid Degree Name!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('degreeName')?.hasError('minlength')"
+              >Degree Name should have minimum 3 characters!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('degreeName')?.hasError('maxlength')"
+              >Degree Name can have maximum 40 characters!</mat-error
+            >
+          </mat-form-field>
+          <mat-form-field
+            appearance="outline"
+            class="form-field"
+            floatLabel="auto"
           >
-        </mat-form-field>
-        <mat-form-field
-          appearance="outline"
-          class="form-field"
-          floatLabel="auto"
-        >
-          <mat-label>Degree Name</mat-label>
-          <input matInput formControlName="degreeName" required placeholder="Degree Name" />
-          <mat-error
-            *ngIf="registrationForm.get('degreeName')?.hasError('required')"
-            >Degree name is required</mat-error
-          >
-        </mat-form-field>
-        <mat-form-field
-          appearance="outline"
-          class="form-field"
-          floatLabel="auto"
-        >
-          <mat-label>City</mat-label>
-          <input matInput formControlName="city" required placeholder="City" />
-          <mat-error *ngIf="registrationForm.get('city')?.hasError('required')"
-            >City is required</mat-error
-          >
-        </mat-form-field>
+            <mat-label>City</mat-label>
+            <input
+              matInput
+              formControlName="city"
+              required
+              placeholder="City"
+              minlength="3"
+              maxlength="30"
+            />
+            <mat-error
+              *ngIf="registrationForm.get('city')?.hasError('required')"
+              >City is required</mat-error
+            >
+            <mat-error *ngIf="registrationForm.get('city')?.hasError('pattern')"
+              >Invalid city, only alphabets are allowed!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('city')?.hasError('minlength')"
+              >City Name should have minimum 3 characters!</mat-error
+            >
+            <mat-error
+              *ngIf="registrationForm.get('city')?.hasError('maxlength')"
+              >City Name can have maximum 30 characters!</mat-error
+            >
+          </mat-form-field>
+        </div>
         <div class="form-actions">
           <button
             mat-raised-button
             color="primary"
             type="submit"
-            [disabled]="loading || registrationForm.invalid"
+            [disabled]="
+              loading ||
+              registrationForm.invalid ||
+              !registrationEnabled ||
+              checkingStatus
+            "
           >
-            {{ loading ? 'Registering...' : 'Register' }}
+            {{ loading ? "Registering..." : "Register" }}
           </button>
-          <button 
+          <button
             mat-raised-button
             type="button"
             class="go-home-btn"
             (click)="goToLanding()"
           >
-            Go to Homepage
+            Go to Home
           </button>
         </div>
       </form>
     </div>
   </div>
-</div> 
+</div>

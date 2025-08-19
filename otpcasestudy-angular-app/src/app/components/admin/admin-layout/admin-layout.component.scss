@@ -50,7 +50,7 @@
       }
 
       &.active-link {
-        background-color: rgba(255, 255, 255, 0.7);
+        background-color: rgba(255, 255, 255, 0.75);
         color: #3b1877;
         font-weight: 500;
       }
@@ -96,7 +96,7 @@
     .toolbar-title {
       font-size: 1.25rem;
       font-weight: 500;
-      display: none;
+      display: none; // Hidden on small screens
     }
   }
 
@@ -125,6 +125,34 @@
 
 .mat-mdc-list-item-title {
   color: white;
+}
+
+.registration-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: 20px;
+  padding: 10px;
+
+  .toggle-label {
+    font-size: 18px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  mat-slide-toggle {
+    ::ng-deep .mat-slide-toggle-bar {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    ::ng-deep .mat-slide-toggle-thumb {
+      background-color: white;
+    }
+
+    ::ng-deep .mat-slide-toggle-checked .mat-slide-toggle-bar {
+      background-color: #4caf50;
+    }
+  }
 }
 
 // Responsive design

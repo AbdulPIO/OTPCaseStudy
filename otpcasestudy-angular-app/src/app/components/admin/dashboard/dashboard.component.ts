@@ -8,7 +8,6 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -56,7 +55,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   constructor(
     private examService: ExamService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -64,32 +62,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    console.log('Paginator: ', this.paginator);
-
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
   }
 
   loadExams(): void {
     this.loading = true;
-    this.examService.getScheduledExams().subscribe((exams) => {
-      console.log('Parsed Exams: ', exams);
-      this.dataSource.data = exams;
-    });
 
     // Fetch scheduled exams
     this.examService.getScheduledExams().subscribe({
       next: (exams) => {
         const mappedExams = exams.map((exam: any) => ({
-          id: exam.id ?? exam.examId,
+          id: exam.id,
           title: exam.title,
           startDateTime: exam.startDateTime,
           endDateTime: exam.endDateTime,
           status: this.getStatusFromDates(exam.startDateTime, exam.endDateTime),
           totalCandidates: 0
         }));
-        this.dataSource = new MatTableDataSource(mappedExams);
-        this.calculateStats(this.dataSource.data);
+
+        // Update data source data instead of recreating it
+        this.dataSource.data = mappedExams;
+        this.calculateStats(mappedExams);
         this.loading = false;
       },
       error: (err) => {
@@ -104,7 +98,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (count) => this.activeExams = count,
       error: (err) => {
         console.error(err)
-        this.snackBar.open(err?.error?.message || 'Failed to load Active Exam Count', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Failed to load Active Exam Count', 'ERROR', { duration: 5000 });
       }
     });
 
@@ -113,7 +107,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (count) => this.totalCandidates = count,
       error: (err) => {
         console.error(err);
-        this.snackBar.open(err?.error?.message || 'Failed to load Active Candidates', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Failed to load Active Candidates', 'ERROR', { duration: 5000 });
       }
     })
   }
@@ -172,11 +166,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         a.download = fileName;
         a.click();
         window.URL.revokeObjectURL(url);
-        this.snackBar.open('Download complete!', '', { duration: 5000 });
+        a.remove();
+        this.snackBar.open('Download complete!', 'INFO', { duration: 5000 });
       },
       error: (err) => {
         console.error(err);
-        this.snackBar.open(err?.error?.message || 'Failed to download results.', '', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Failed to download results.', 'ERROR', { duration: 5000 });
       }
     });
   }

@@ -60,8 +60,8 @@ export class ViewCandidatesComponent implements OnInit {
         this.exams = res || [];
         this.loading = false;
       },
-      error: () => {
-        this.snackBar.open('Failed to exams', '', { duration: 5000 })
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Failed to exams', '', { duration: 5000 })
         this.loading = false;
       }
     })
@@ -86,8 +86,8 @@ export class ViewCandidatesComponent implements OnInit {
         this.candidates = [...(attended || []), ...(notAttended || [])];
         this.loading = false;
       },
-      error: () => {
-        this.snackBar.open('Failed to load candidates', '', { duration: 5000 });
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Failed to load candidates', '', { duration: 5000 });
         this.loading = false;
       }
     })

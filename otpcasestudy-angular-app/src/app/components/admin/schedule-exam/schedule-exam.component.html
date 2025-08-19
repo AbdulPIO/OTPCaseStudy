@@ -29,6 +29,8 @@
             formControlName="title"
             required
             placeholder="Enter exam title"
+            minlength="5"
+            maxlength="30"
           />
           <mat-error *ngIf="examForm.get('title')?.touched">
             {{ getErrorMessage("title") }}
@@ -44,7 +46,7 @@
               type="number"
               formControlName="cutoff"
               required
-              min="0"
+              min="1"
               max="100"
             />
             <mat-error *ngIf="examForm.get('cutoff')?.touched">
@@ -187,6 +189,7 @@
             color="warn"
             type="button"
             (click)="removeSection(i)"
+            *ngIf="i > 0"
           >
             <mat-icon>delete</mat-icon>
           </button>
@@ -206,10 +209,12 @@
           </button>
 
           <button
-            mat-stroked-button
+            mat-raised-button
+            class="reset-btn"
             type="button"
             (click)="resetForm()"
             [disabled]="submitting"
+            color="primary"
           >
             <mat-icon>refresh</mat-icon>
             <span>Reset</span>
